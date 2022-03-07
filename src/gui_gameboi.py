@@ -1,7 +1,7 @@
 from ctypes import sizeof
 from numpy import size
 import numpy as np
-from pandas import StringDtype
+# from pandas import StringDtype
 import wx
 from strings import *
 import sys
@@ -18,7 +18,8 @@ class MyPanel(wx.Panel):
         #---store background data---
         bg_img = 'back.jpeg'
         self.bg = wx.Image(bg_img, wx.BITMAP_TYPE_ANY)
-        self.SetBackgroundStyle(wx.BG_STYLE_ERASE)
+        # self.SetBackgroundStyle(wx.BG_STYLE_ERASE)
+        self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
         self.bgh = self.bg.GetHeight()
         self.bgw = self.bg.GetWidth()
 
@@ -115,16 +116,30 @@ class MyFrame(wx.Frame):
     def __init__(self):
         """Constructor"""
         wx.Frame.__init__(self, None, title="Test FullScreen")
-        panel = MyPanel(self)
-        self.ShowFullScreen(True)
-        self.Show()
+        # panel = MyPanel(self)
+        # self.ShowFullScreen(True)
+        self.InitUI()
+        # self.Show()
     
-    def on_press(self, event):
-        value = self.text_ctrl.GetValue()
-        if not value:
-            print("You didn't enter anything!")
+    def InitUI(self):
+
+        menubar = wx.MenuBar()
+        fileMenu = wx.Menu()
+        fileItem = fileMenu.Append(wx.ID_EXIT, 'Quit', 'Quit application')
+        menubar.Append(fileMenu, '&File')
+        self.SetMenuBar(menubar)
+
+        self.Bind(wx.EVT_MENU, self.OnQuit, fileItem)
+
+        self.SetSize((400, 300))
+        self.SetTitle('Simple menu')
+        self.Centre()
+
+    def OnQuit(self, e):
+        self.Close()
 
 if __name__ == '__main__':
     app = wx.App()
     frame = MyFrame()
+    frame.Show()
     app.MainLoop()
