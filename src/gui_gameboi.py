@@ -1,7 +1,7 @@
 from ctypes import sizeof
 from numpy import size
 import numpy as np
-# from pandas import StringDtype
+from pandas import StringDtype
 import wx
 from strings import *
 import sys
