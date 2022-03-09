@@ -42,6 +42,7 @@ from kobuki_msgs.msg import BumperEvent #Used to detect Bumper Events
 from cmvision.msg import Blob, Blobs #Blob Detection
 from sensor_msgs.msg import PointCloud2
 from geometry_msgs.msg import Twist
+from std_msgs.msg import String
 
 import sys
 import signal
@@ -57,44 +58,42 @@ class GameCheckerFSM:
 
     def __init__(self):
         # Initialize the ROS node
-        rospy.init_node('lab4_example')
+        rospy.init_node('GameCheckerFSM')
 
         # Subscribe to the /blobs topic
         self.blobs_sub = rospy.Subscriber('/blobs', Blobs, self.blobs_cb)
-
-        # Subscribe to the /camera/depth/points topic
-        # self.pointcloud_sub = rospy.Subscriber('/camera/depth/points', 
-        #         PointCloud2, self.pointcloud_cb)
-
-        # Publish commands to the robot
-        # self.velocity_pub = rospy.Publisher('cmd_vel_mux/input/teleop',
-        #         Twist, queue_size=1)
-        # self.velocity_pub = rospy.Publisher('/cmd_vel',Twist,queue_size=10)
-        
-        #Subscribe to the Bumper events
-        self.bumper_sub = rospy.Subscriber('mobile_base/events/bumper', BumperEvent, self.processBump)
-
-        # Current (Starting) FSM state
+        # self.bumper_sub = rospy.Subscriber('mobile_base/events/bumper', BumperEvent, self.processBump)
         self.state = 0
-        print("In state 0")
-
         #Parameters for speed and control
-        self.sequence = ['Red','Blue','Green']
-
         self.bump = False #Set to true if bump detected
-
         self.last_blob = None
-
         self.seq = None
         self.seq_len = 0
         self.started = False
         self.index = 0.0
 
+        #Communicating with main
+        self.main_sub = rospy.Subscriber('/game_check_state',String,self.change_state,queue_size=1)
+        self.main_pub = rospy.Publisher('/game_checker',String,queue_size=1)
+
+    def change_state(self,data):
+        data = data.data
+        print(data)
+        if data=="end":
+            self.started = False
+        else:
+            words = data.split(" ")
+            assert words[0]=="start"
+            self.seq = words[1:]
+            self.find_index = 0
+            self.main_pub.publish("LOOKING FOR C0LOURS NOW")
+            self.started = True
+        return
 
     def set_seq(self,seq):
+        assert 1==0 #Shouldnt be called
         self.seq = seq
         self.seq_len = len(seq)
-        self.started = True
         self.find_index = 0
         return
 
@@ -102,10 +101,10 @@ class GameCheckerFSM:
     """ This callback function sets a flag to true if bump is detected.
         This flag is used to make decisions by the controller.
     """
-    def processBump(self,bevent):
-        if bevent.state==1:
-            print("Bump Detected")
-            self.bump = True
+    # def processBump(self,bevent):
+    #     if bevent.state==1:
+    #         print("Bump Detected")
+    #         self.bump = True
 
     """ The callback function for the /blobs topic.
         This is called whenever we receive a message from /blobs.
@@ -115,30 +114,34 @@ class GameCheckerFSM:
         maximum blob size is greater than threshold, it asserts that the bot has reached its destination.
     """
     def blobs_cb(self, blobsIn):
-        if self.state==3: return
-        if self.started == False: return
+        # if self.state==3: return
+        if not self.started: return
         if len(blobsIn.blobs)==0: return
+
+        # print("Callback ")
 
         blob_freq = defaultdict(float)
         for blob in blobsIn.blobs:
-            if blob.name not in ['Red','Green']: continue
+            if blob.name not in self.seq: continue
             blob_freq[blob.name]+=blob.area
 
 
         if len(blob_freq.keys())==0: return #No blobs detected
         max_blob = max(blob_freq.keys(), key=lambda a: blob_freq[a]) #Maximum area blob
+        # print(max_blob)
 
         if not self.last_blob or max_blob!=self.last_blob:
             self.last_blob = max_blob
-            print(max_blob,blob_freq[max_blob])
+            # print(max_blob,blob_freq[max_blob])
             if max_blob==self.seq[self.find_index]:
+                send_string = "Found %s"%(max_blob)
                 self.find_index+=1
-                if self.find_index==self.seq_len:
-                    print("Game Passed")
+                if self.find_index==len(self.seq):
+                    send_string += "\nGame Passed"
                     self.started = False
-                    return
+                self.main_pub.publish(send_string)
             else:
-                print("Found %s,Wrong Sequence, please restart"%(max_blob))
+                self.main_pub.publish("Found %s,Wrong Sequence, please restart"%(max_blob))
                 self.find_index=0 #Resetting
         return
 
@@ -196,5 +199,5 @@ if __name__ == '__main__':
     print("Running on Python ",sys.version)
     signal.signal(signal.SIGINT, sigint_handler) #Used to stop the bot safely using Ctrl+C
     game_checker = GameCheckerFSM()
-    game_checker.set_seq(['Red','Green','Red'])
+    # game_checker.set_seq(['Red','Green','Red'])
     game_checker.run()

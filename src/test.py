@@ -1,15 +1,15 @@
+
+import rospy
 from ctypes import sizeof
 from numpy import size
+import numpy as np
+# from pandas import StringDtype
 import wx
-from strings import *
-import rospy
-import time
+from string import *
+from std_msgs.msg import String
+import sys
 
-class GameFlags: #Use this for all game related flags
-    def __init__(self):
-        self.enter_pressed = False
-        self.curr_game = 0
-
+# import rospy
 
 class MyPanel(wx.Panel):
     #----------------------------------------------------------------------
@@ -19,12 +19,11 @@ class MyPanel(wx.Panel):
         self.Bind(wx.EVT_KEY_DOWN, self.onKey)
         self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
 
-        parent.ShowFullScreen(True)
-
         #---store background data---
         bg_img = 'back.jpeg'
         self.bg = wx.Image(bg_img, wx.BITMAP_TYPE_ANY)
-        self.SetBackgroundStyle(wx.BG_STYLE_ERASE)
+        # self.SetBackgroundStyle(wx.BG_STYLE_ERASE)
+        self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
         self.bgh = self.bg.GetHeight()
         self.bgw = self.bg.GetWidth()
 
@@ -34,17 +33,15 @@ class MyPanel(wx.Panel):
         self.avh = self.avt.GetHeight()
         self.avw = self.avt.GetWidth()
 
+        #---------Rospy Subscriber-----------
+        # self.command = rospy.Subscriber('/gui_commands', String, self.command_callback)
+
         #-----------Panel Display Flags------
         self.Instruction = False
-        self.started = True
+        self.started = False
         self.evt = None
         self.new_test = False
-        self.text = None
-        self.inst = None
 
-        #---------GameFlags------------------
-        self.GAMEFLAGS = GameFlags()
-    
     #----------------------------------------------------------------------
     def OnEraseBackground(self, evt):
         """
@@ -53,45 +50,39 @@ class MyPanel(wx.Panel):
         # yanked from ColourDB.py
         dc = evt.GetDC() if evt is not None else None
         self.evt = evt
-                
+
         if not dc:
             dc = wx.ClientDC(self)
             rect = self.GetUpdateRegion().GetBox()
             # dc.SetClippingRect(rect)
 
         cliWidth, cliHeight = self.GetClientSize()
-        # print(cliWidth,cliHeight)
         dc.Clear()
 
         # Calculate scale factors
         # The final image will be distorted. Change this maths for "fit in window", but leaving margins
         scaledimage = self.bg.Scale(cliWidth, cliHeight)
         dc.DrawBitmap(wx.Bitmap(scaledimage), 0, 0)
+        print("reached")
 
         #-------------------Display Avatar here if started---------------------
         if self.started:
-            cliWidth, cliHeight = self.GetClientSize()
             scaledimage = self.avt.Scale(cliWidth//3, cliHeight*9//10)
             dc.DrawBitmap(wx.Bitmap(scaledimage),cliWidth//20,cliHeight//20)
-            self.inst
-            
+
         if not self.Instruction:
-            if self.inst: self.inst.Destroy()
-            if not self.inst:
-                cliWidth, cliHeight = self.GetClientSize()
-                pos = (16*cliWidth//20 , 17*cliHeight//20)
-                self.inst = wx.StaticText(self, label=inst_string, pos=pos)
-                font1 = wx.Font(15, wx.MODERN, wx.NORMAL, wx.NORMAL, False)
-                self.inst.SetForegroundColour((0,0,0))
-                self.inst.SetFont(font1)
-                self.Instruction = True
-        
+            pos = (10*cliWidth//20 , 16*cliHeight//20)
+            self.inst = wx.StaticText(self, label=inst_string, pos=pos)
+            font1 = wx.Font(40, wx.MODERN, wx.NORMAL, wx.NORMAL, False)
+            self.inst.SetForegroundColour((0,0,0))
+            self.inst.SetFont(font1)
+            self.Instruction = True
+
         if self.new_test:
-            cliWidth, cliHeight = self.GetClientSize()
-            pos = (10*cliWidth//20 , 4*cliHeight//20)
-            if self.text: self.text.Destroy()
+            print("Printing text box")
+            pos = pos = (10*cliWidth//20 , 4*cliHeight//20)
             self.text = wx.StaticText(self, label=self.text_str, pos=pos)
-            font_size = 15
+            font_size = 30
             font1 = wx.Font(font_size, wx.MODERN, wx.NORMAL, wx.NORMAL, False)
             self.text.SetForegroundColour((0,0,0))
             self.text.SetBackgroundColour((225,225,225))
@@ -101,30 +92,7 @@ class MyPanel(wx.Panel):
         #-------------------Display Text Box Here------------------------------
         if self.started:
             assert 1==1
-    
-    def update_display(self,exc_inst=False): #Setting it to true excludes instructions
-        self.Instruction = exc_inst
-        self.OnEraseBackground(None)
-    
-    def update_text(self,prompt):
-        #Receives String
-        # print("Updating Text")
-        self.text_str = prompt
-        self.new_test = True
-        self.update_display(exc_inst=True)
 
-    #-------------Used for communicating flags with main------------------
-    def get_enter_flag(self):
-        if self.GAMEFLAGS.enter_pressed:
-            self.GAMEFLAGS.enter_pressed = False
-            return True
-        else:
-            return False
-    
-    def make_enter_false(self):
-        self.GAMEFLAGS.enter_pressed = False
-        return
-        
     #----------------------------------------------------------------------
     def onKey(self, event):
         """
@@ -136,48 +104,46 @@ class MyPanel(wx.Panel):
         elif key_code == wx.WXK_RETURN:
             if not self.started:
                 self.started = True
-                # print("Start received")
-                self.update_display()
-            elif not self.GAMEFLAGS.enter_pressed:
-                self.GAMEFLAGS.enter_pressed = True
+                print("Start received")
+                self.OnEraseBackground(None)
         elif key_code == wx.WXK_BACK:
-            # print("right received")
+            print("right received")
             self.text_str = get_colour_order()
             self.new_test = True
-            self.update_display(exc_inst=True)
+            self.OnEraseBackground(None)
         else:
             event.Skip()
-        
-class Puzzle_Bot_GUI(wx.Frame):
-    #-------------------------USAGE--------------------------------
-    """
-        Use self.panel.update_text(arg) with argument as the string you want to display
-    """
+
+class MyFrame(wx.Frame):
+    """"""
+    #----------------------------------------------------------------------
     def __init__(self):
         """Constructor"""
         wx.Frame.__init__(self, None, title="Test FullScreen")
-        self.panel = MyPanel(self)
-        self.Show()
-    
-    def on_press(self, event):
-        value = self.text_ctrl.GetValue()
-        if not value:
-            print("You didn't enter anything!")
-        else:
-            print(f'You typed: "{value}"')
+        # panel = MyPanel(self)
+        # self.ShowFullScreen(True)
+        self.InitUI()
+        # self.Show()
 
-class gui:
-    def __init__(self):
-        """Constructor"""
-        self.app = wx.App()
-        self.frame = Puzzle_Bot_GUI()
-    
-    def start(self):
-        self.app.MainLoop()
+    def InitUI(self):
+
+        menubar = wx.MenuBar()
+        fileMenu = wx.Menu()
+        fileItem = fileMenu.Append(wx.ID_EXIT, 'Quit', 'Quit application')
+        menubar.Append(fileMenu, '&File')
+        self.SetMenuBar(menubar)
+
+        self.Bind(wx.EVT_MENU, self.OnQuit, fileItem)
+
+        self.SetSize((400, 300))
+        self.SetTitle('Simple menu')
+        self.Centre()
+
+    def OnQuit(self, e):
+        self.Close()
 
 if __name__ == '__main__':
-    rospy.init_node('GameBoiGui')
     app = wx.App()
-    frame = Puzzle_Bot_GUI()
-    # rospy.spin()
+    frame = MyFrame()
+    frame.Show()
     app.MainLoop()
