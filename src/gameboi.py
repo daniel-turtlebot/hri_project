@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from pickle import NONE
+from tracemalloc import start
 import rospy
 
 import sensor_msgs.point_cloud2 as pc2
@@ -17,21 +19,7 @@ import threading
 import gui_gameboi as guigb
 import game_checker as gc
 import wx
-
-class GENERAL_STATE:
-    INITIAL = 0
-    SEARCHING = 1
-    MOVING_TO_HUMAN = 2
-    ASKING_HUMAN = 3
-    PLAYING_GAME = 4
-
-class GAME_STATE:
-    NOT_PLAYING = 0
-    QUESTION = 1
-    ANSWER = 2
-    SIGNALS = 3
-    DECISION = 4
-
+from utill import *
 
 class GameBoi:
 
@@ -40,7 +28,6 @@ class GameBoi:
         rospy.init_node('GameBoi')
         # # Publish commands to the robot
         # self.velocity_pub = rospy.Publisher('cmd_vel_mux/input/teleop', Twist, queue_size=1)
-        # self.velocity_sub = rospy.Subscriber('/test', String , self.subvel , queue_size=1)
 
         self.game_check_st_sub = rospy.Publisher('/game_check_state', String, queue_size=1)
         self.game_check_sub = rospy.Subscriber('/game_checker', String , self.game_check , queue_size=1)
@@ -53,12 +40,8 @@ class GameBoi:
         self.t1 = threading.Thread(target=self.start_gui)
         self.t1.start()
         self.game_check_str = None
-        self.human_bool = False
-        self.game_bool = False
-
-    # def subvel(self,test):
-    #     self.gui.frame.panel.update_text("TEST")
-    #     print(test)
+        self.flags = FLAGS()
+        self.signals = SIGNALS()
 
     def start_gui(self):
         self.gui = guigb.gui()
@@ -79,62 +62,64 @@ class GameBoi:
         wx.CallAfter(self.panel.update_text, text)
 
 
-        
-
-
-
-        
-
   
-    def change_state(self, human_bool, game_bool):
+    def change_state(self):
+        
+        if self.signals.RELEASE_SIGNAL is not None:
+            if self.game_state == GAME_STATE.NOT_PLAYING:
+                self.signals.PREVIOUS_STATE = None
+                self.signals.RELEASE_SIGNAL = None
+            elif self.game_state != GAME_STATE.SIGNALS:
+                self.signals.PREVIOUS_STATE = self.game_state
+                self.game_state = GAME_STATE.SIGNALS
+
         if self.state == GENERAL_STATE.INITIAL:
-            if human_bool:
+            if self.flags.START:
                 self.state = GENERAL_STATE.SEARCHING
         elif self.state == GENERAL_STATE.SEARCHING:
-            if human_bool:
+            if self.flags.HUMAN_FOUND:
                 self.state = GENERAL_STATE.MOVING_TO_HUMAN
         elif self.state == GENERAL_STATE.MOVING_TO_HUMAN:
-            if human_bool:
+            if self.flags.HUMAN_REACH:
                 self.state = GENERAL_STATE.ASKING_HUMAN
         elif self.state == GENERAL_STATE.ASKING_HUMAN:
-            if human_bool:
+            if self.flags.HUMAN_RESPONSE == True:
                 self.state = GENERAL_STATE.PLAYING_GAME
-            elif game_bool:
+            elif self.flags.HUMAN_RESPONSE == False:
                 self.state = GENERAL_STATE.SEARCHING
+
         elif self.state == GENERAL_STATE.PLAYING_GAME:
-                
             if self.game_state == GAME_STATE.NOT_PLAYING:
                 self.game_state = GAME_STATE.QUESTION
             elif self.game_state == GAME_STATE.QUESTION:
-                if game_bool:
+                if self.flags.FINISH_GAME_Q:
                     self.game_state = GAME_STATE.ANSWER
             elif self.game_state == GAME_STATE.ANSWER:
-                if game_bool:
+                if self.flags.FINISH_ANS_VERIFY:
                     self.game_state = GAME_STATE.DECISION
+            elif self.game_state == GAME_STATE.SIGNALS:
+                if self.signals.RELEASE_SIGNAL is None:
+                    self.game_state = self.signals.PREVIOUS_STATE
+                    self.signals.PREVIOUS_STATE = None
             elif self.game_state == GAME_STATE.DECISION:
-                self.state = GENERAL_STATE.SEARCHING
-                self.game_state = GAME_STATE.NOT_PLAYING
+                if self.flags.FINISH_GAME:
+                    self.state = GENERAL_STATE.SEARCHING
+                    self.game_state = GAME_STATE.NOT_PLAYING
 
-        self.game_bool = False
-        self.human_bool = False
     def controller(self,event):
-        hb = self.human_bool
-        gb = self.game_bool
-    
-        self.change_state(hb,gb)
-
+        self.change_state()
         if(self.state == GENERAL_STATE.INITIAL):
             print("INITIAL")
             if self.panel.get_enter_flag(): 
-                self.human_bool = True
+                self.flags.set(start=True)
             # self.stop()
         elif(self.state == GENERAL_STATE.SEARCHING): 
             print("SEARCHING")
-            self.human_bool = True
+            self.flags.set(human_found=True)
             # self.search_for_target()
         elif (self.state == GENERAL_STATE.MOVING_TO_HUMAN):
             print("MOVING TO HUMAN")
-            self.human_bool = True
+            self.flags.set(human_reach=True)
         elif (self.state == GENERAL_STATE.ASKING_HUMAN):
             print("ASKING_HUMAN")
             self.prompt_Q()
@@ -148,9 +133,7 @@ class GameBoi:
                 self.verify_ans()
             elif(self.game_state == GAME_STATE.DECISION):
                 print("GAME: DECISION")
-
-
-
+                self.flags.set(finish_game=True)
 
     def prompt_Q(self):
         self.update_gui_text("Do You Want To Play A Game With Me?")
@@ -163,15 +146,15 @@ class GameBoi:
  
         if want_to_play:
             self.update_gui_text("Let's Play The Game!")
-            self.human_bool = True
-            rospy.sleep(1)
+            self.flags.set(human_reponse=True)
+            rospy.sleep(2)
         else:
-            self.game_bool = True
+            self.flags.set(human_reponse=False)
 
 
     def prompt_game_Q(self):
         self.update_gui_text("The Seq is Pink Yellow Pink")
-        self.game_bool = True
+        self.flags.set(finish_game_q=True)
         rospy.sleep(3)
 
     def verify_ans(self):
@@ -189,7 +172,7 @@ class GameBoi:
             rospy.sleep(1)
 
         self.game_check_str = None
-        self.game_bool = True
+        self.flags.set(finish_ans_verify=True)
 
 
 
