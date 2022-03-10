@@ -24,11 +24,14 @@
 
   <include file="$(find astra_launch)/launch/astra_pro.launch"/>
 
+
   <node name="cmvision" pkg="cmvision" type="cmvision" args="image:=$(arg image)" output="screen" />
+
+
 
   <node name="game_checker" pkg="gameboi" type="game_checker.py" output="screen"/>
 
-  <node name="gameboi" pkg="gameboi" type="gameboi.py" output="screen"/>
+  <node name="gameboi" pkg="gameboi" type="gameboi.py" output="screen"/> -->
 
-  <!-- <node name="controller" pkg="lab4" type="lab4_example.py" output="screen" /> -->
+
 </launch>
