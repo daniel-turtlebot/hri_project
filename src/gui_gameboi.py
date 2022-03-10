@@ -18,18 +18,20 @@ class MyPanel(wx.Panel):
         wx.Panel.__init__(self, parent)
         self.Bind(wx.EVT_KEY_DOWN, self.onKey)
         self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
+        self.Bind(wx.EVT_SIZE,self.OnSize)
+        self.Bind(wx.EVT_IDLE,self.OnIdle)
 
         parent.ShowFullScreen(True)
-
+        img_path = '/home/turtlebot/chocolate_ws/src/gameboi/image'
         #---store background data---
-        bg_img = 'back.jpeg'
+        bg_img = f'{img_path}/back.jpeg'
         self.bg = wx.Image(bg_img, wx.BITMAP_TYPE_ANY)
         self.SetBackgroundStyle(wx.BG_STYLE_ERASE)
         self.bgh = self.bg.GetHeight()
         self.bgw = self.bg.GetWidth()
 
         #-----Store Avatar data------
-        avtar_img = 'camerica.jpeg'
+        avtar_img = f'{img_path}/camerica.jpeg'
         self.avt = wx.Image(avtar_img, wx.BITMAP_TYPE_ANY)
         self.avh = self.avt.GetHeight()
         self.avw = self.avt.GetWidth()
@@ -41,9 +43,11 @@ class MyPanel(wx.Panel):
         self.new_test = False
         self.text = None
         self.inst = None
+        self.size_changed = None
 
         #---------GameFlags------------------
         self.GAMEFLAGS = GameFlags()
+        
     
     #----------------------------------------------------------------------
     def OnEraseBackground(self, evt):
@@ -74,7 +78,7 @@ class MyPanel(wx.Panel):
             scaledimage = self.avt.Scale(cliWidth//3, cliHeight*9//10)
             dc.DrawBitmap(wx.Bitmap(scaledimage),cliWidth//20,cliHeight//20)
             self.inst
-            
+        print(self.Instruction)
         if not self.Instruction:
             if self.inst: self.inst.Destroy()
             if not self.inst:
@@ -147,6 +151,17 @@ class MyPanel(wx.Panel):
             self.update_display(exc_inst=True)
         else:
             event.Skip()
+
+    def OnSize(self, event):
+        self.size_changed = True
+
+    def OnIdle(self,event):
+        if self.size_changed: 
+            print("New size:", self.GetSize())
+            
+            self.update_display(exc_inst=False)
+
+            self.size_changed = None
         
 class Puzzle_Bot_GUI(wx.Frame):
     #-------------------------USAGE--------------------------------

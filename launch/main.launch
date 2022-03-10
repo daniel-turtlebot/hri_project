@@ -1,0 +1,34 @@
+<launch>
+  <arg name="color_file" default="/home/turtlebot/chocolate_ws/src/gameboi/params/colors.txt" />
+  <!-- <arg name="color_file" default="$(find gameboi)/params/colors.txt" /> -->
+  <arg name="image" default="/camera/rgb/image_raw" />
+  <arg name="gui" default="false" />
+
+  <!-- Location of the cmvision color file -->
+  <param name="cmvision/color_file" type="string" 
+         value="$(arg color_file)" />
+
+  <!-- Turn debug output on or off -->
+  <param name="cmvision/debug_on" type="bool" value="$(arg gui)"/>
+  <!-- Turn color calibration on or off -->
+  <param name="cmvision/color_cal_on" type="bool" value="false"/>
+  <!-- Enable Mean shift filtering -->
+  <param name="cmvision/mean_shift_on" type="bool" value="false"/>
+  <!-- Spatial bandwidth: Bigger = smoother image -->
+  <param name="cmvision/spatial_radius_pix" type="double" value="2.0"/>
+
+  <!-- Color bandwidth: Bigger = smoother image-->
+  <param name="cmvision/color_radius_pix" type="double" value="40.0"/>
+
+  <include file="$(find turtlebot_bringup)/launch/minimal.launch"/>
+
+  <include file="$(find astra_launch)/launch/astra_pro.launch"/>
+
+  <node name="cmvision" pkg="cmvision" type="cmvision" args="image:=$(arg image)" output="screen" />
+
+  <node name="game_checker" pkg="gameboi" type="game_checker.py" output="screen"/>
+
+  <node name="gameboi" pkg="gameboi" type="gameboi.py" output="screen"/>
+
+  <!-- <node name="controller" pkg="lab4" type="lab4_example.py" output="screen" /> -->
+</launch>

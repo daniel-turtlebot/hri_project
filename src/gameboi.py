@@ -1,14 +1,17 @@
-#!/usr/bin/env python
+#!/home/turtlebot/anaconda3/envs/gui/bin/python3
 
 from pickle import NONE
 from tracemalloc import start
 import rospy
+import sys
+
+print(sys.version_info)
 
 import sensor_msgs.point_cloud2 as pc2
 
 from cmvision.msg import Blob, Blobs
 from sensor_msgs.msg import PointCloud2, Image
-from kobuki_msgs.msg import BumperEvent 
+from kobuki_msgs.msg import BumperEvent
 from geometry_msgs.msg import Twist
 import numpy as np
 # import cv2
@@ -39,6 +42,8 @@ class GameBoi:
         self.panel = None
         self.t1 = threading.Thread(target=self.start_gui)
         self.t1.start()
+        while self.panel is None:
+            rospy.sleep(0.2)
         self.game_check_str = None
         self.flags = FLAGS()
         self.signals = SIGNALS()
@@ -61,10 +66,8 @@ class GameBoi:
     def update_gui_text(self,text):
         wx.CallAfter(self.panel.update_text, text)
 
-
-  
     def change_state(self):
-        
+
         if self.signals.RELEASE_SIGNAL is not None:
             if self.game_state == GAME_STATE.NOT_PLAYING:
                 self.signals.PREVIOUS_STATE = None
@@ -110,10 +113,10 @@ class GameBoi:
         self.change_state()
         if(self.state == GENERAL_STATE.INITIAL):
             print("INITIAL")
-            if self.panel.get_enter_flag(): 
+            if self.panel.get_enter_flag():
                 self.flags.set(start=True)
             # self.stop()
-        elif(self.state == GENERAL_STATE.SEARCHING): 
+        elif(self.state == GENERAL_STATE.SEARCHING):
             print("SEARCHING")
             self.flags.set(human_found=True)
             # self.search_for_target()
@@ -143,7 +146,7 @@ class GameBoi:
                 want_to_play = True
                 break
             rospy.sleep(0.5)
- 
+
         if want_to_play:
             self.update_gui_text("Let's Play The Game!")
             self.flags.set(human_reponse=True)
@@ -184,25 +187,25 @@ class GameBoi:
             self.velocity_pub.publish(t)
             rospy.sleep(time)
 
-    
+
 
 
     def stop(self):
         self.pub_bot_vel(0, 0, 0, repeat=1)
-        
+
     def search_for_target(self):
         self.pub_bot_vel(0, -0.5, 0, repeat=1)
-    
+
     def avoid_obstacle(self):
 
         self.has_obstacle = False
 
         # Move back for 0.5 sec
         self.pub_bot_vel(-0.25, 0, 0.5)
-        
+
         # Turn for 2.5 seconds
         self.pub_bot_vel(0, 0.6, 0.5, repeat=7)
-        
+
         # Move around obstacle
         self.pub_bot_vel(0.3, -0.8, 0.4, repeat=6)
 
@@ -218,11 +221,11 @@ class GameBoi:
         t = Twist()
         t.linear.x = 1 if diff_size >=0 else -1  # x is moving back and forth
         t.angular.z = -1 if diff_angle >=0 else 1 # z is turning left and right
-        
+
         if (abs(diff_angle) > self.target_window_size):
             # turn to center the target in the frame
             t.linear.x = 0
-            t.angular.z *= 0.4 
+            t.angular.z *= 0.4
         elif abs(diff_size) > self.threshold_height :
             # move toward target
             t.linear.x *= 0.25

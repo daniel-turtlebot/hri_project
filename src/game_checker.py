@@ -1,29 +1,18 @@
-#!/usr/bin/env python
+#!/home/turtlebot/anaconda3/envs/gui/bin/python3
 # ****************************************
-#  Filename: blob_foll.py
+#  Filename: game_checker.py
 #  Student: Harsh Deshpande
-#  Lab #4: Blob Detector and Obstacle Avoidance
+#  Final Project: PuzzleBot
 
 
 # Description: 
-# This is the main run file for Lab 4 which demonstrates the turtlebot
-# searching for a particular coloured paper (Pink in this case) and heads towards it
-# after finding it. If on the way it encounters an obstacle, it heads backwards,
-# turns a little, goes ahead, and again starts searching for the paper and heads towards it
+# This file contains code for the game logic. It is capable of taking blob inputs and 
+# spitting out real time feedback to help the user play the game. It consists of a subscribeer that 
+# subscribes to blobs topic that reads colours to make decisions for the implemented FSM. It also has a 
+# pair of publisher and subscriber to communicate with the main "gameboi.py" script.
 
 # How to use:
-
-# Colors.txt file, can be found in /params folder:
-# Colour thresholds was defined in AB values using colorgui tool of cmvision.
-# Values were calibereted in a tent on an afternoon, recalibaration may be required
-
-
-# Put Following Lines in .bashrc for easy usage. Source this .bashrc in open terminal_size
-# rosparam set /cmvision/color_file (blob_cather_path)/params/color.txt
-# rosparam set /cmvision/mean_shift_on False
-# rosparam set /cmvision/spatial_radius_pix 0
-# rosparam set /cmvision/color_radius_pix 0
-# rosparam set /cmvision/debug_on False
+# Run along with gameboi.py file
 
 
 # Usage:
@@ -62,23 +51,25 @@ class GameCheckerFSM:
 
         # Subscribe to the /blobs topic
         self.blobs_sub = rospy.Subscriber('/blobs', Blobs, self.blobs_cb)
-        # self.bumper_sub = rospy.Subscriber('mobile_base/events/bumper', BumperEvent, self.processBump)
-        self.state = 0
+
         #Parameters for speed and control
-        self.bump = False #Set to true if bump detected
         self.last_blob = None
         self.seq = None
         self.seq_len = 0
         self.started = False
         self.index = 0.0
 
+        #Store Game Details here
+
         #Communicating with main
         self.main_sub = rospy.Subscriber('/game_check_state',String,self.change_state,queue_size=1)
         self.main_pub = rospy.Publisher('/game_checker',String,queue_size=1)
 
-    def change_state(self,data):
-        data = data.data
-        print(data)
+
+
+    def change_state(self,comm_string):
+        data = comm_string.data
+        # print(data)
         if data=="end":
             self.started = False
         else:
@@ -97,16 +88,10 @@ class GameCheckerFSM:
         self.find_index = 0
         return
 
-    
-    """ This callback function sets a flag to true if bump is detected.
-        This flag is used to make decisions by the controller.
-    """
-    # def processBump(self,bevent):
-    #     if bevent.state==1:
-    #         print("Bump Detected")
-    #         self.bump = True
 
-    """ The callback function for the /blobs topic.
+    """ 
+        
+        The callback function for the /blobs topic.
         This is called whenever we receive a message from /blobs.
         It finds the center of each found RED (PINK but named Red) blob.
         
@@ -178,11 +163,7 @@ class GameCheckerFSM:
 
 
     """
-    Controller for the bot logic. It has 4 states:
-    State 0: Finding the paper. Bot keeps rotating till it finds target
-    State 1: Bot heads towards paper. Keeps correcting direction using a P controller.
-    State bump: A bump was encountered. Bot backtracks, goes in a new direction and switches to state 0.
-    State 3: Destination reached!
+        Empty Function as all control decision moved to 'gameboi.py' file
     """
     def controller(self):
         #As of now just prints
