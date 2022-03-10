@@ -24,11 +24,14 @@ class GameMover():
         self.started = False
         self.orig_color = 'Yellow'
         self.seq = None
+        self.blob_to_find = None
 
         #--------------------Define all publishers and subscribers here---------------
         self.main_sub = rospy.Subscriber('/game_mover_state',String,self.change_state,queue_size=1)
         self.velocity_pub = rospy.Publisher('cmd_vel_mux/input/teleop',Twist, queue_size=1)
         self.main_pub = rospy.Publisher('/game_mover',String,queue_size=1)
+        self.blobs_sub = rospy.Subscriber('/blobs', Blobs, self.blobs_cb)
+        self.bumper_sub = rospy.Subscriber('mobile_base/events/bumper', BumperEvent, self.processBump)
 
         #-----------------Store all speed related info here--------------------------
         #Store speeds in these variables only
@@ -37,32 +40,40 @@ class GameMover():
         self.search_vel = Twist()
         self.search_vel.angular.z = 0.4
         self.move_vel = Twist()
-        self.move_vel.linear.x = 0.5
+        self.move_vel.linear.x = 0.2
         self.mov_scale = 0.005
         self.stationary = Twist()
+    
+    def processBump(self,bevent):
+        if bevent.state==1:
+            print("Bump Detected")
+            self.bump = True
+            self.state = "Reached"
+            if self.index==len(self.seq): self.state = "Finished"
 
     def blobs_cb(self, blobsIn):
         (self.goal_x, self.goal_y) = (0,0)
         if len(blobsIn.blobs)==0:
             return
-        blob_to_find = self.seq[self.index] if self.index<len(self.seq) else self.orig_color
+        self.blob_to_find = self.seq[self.index] if self.index<len(self.seq) else self.orig_color
         for blob in blobsIn.blobs:
             n_blobs = 0
             goal_x = 0
             max_blob = 0
-            print(blob.name)
-            if blob.name == blob_to_find:
+            if blob.name == self.blob_to_find:
+                # print(blob.name)
                 goal_x += blob.area*blob.x
                 n_blobs += blob.area
                 max_blob = max(max_blob,abs(blob.top-blob.bottom)) #Max blob Size
             if max_blob>350: #If max blob greater than 350
                 self.state = "Reached"
                 if self.index==len(self.seq): self.state = "Finished"
+        if n_blobs==0: return
         self.goal_x = goal_x/n_blobs #Mean of all detected blobs
 
         #Mean should be around 320 for paper to be in centre
         #Till this is true bot will keep rotating
-        if self.state!=1 and self.goal_x>310 and self.goal_x<330: 
+        if self.state!="Moving" and self.goal_x>310 and self.goal_x<330: 
             print("Centered Blob") #Blob detected and centered
             self.state = "Moving"
 
@@ -93,13 +104,16 @@ class GameMover():
             if self.state=="Searching":
                 self.velocity_pub.publish(self.search_vel)
             elif self.state=="Moving":
-                self.move_vel.z = (self.goal_x-330)*self.mov_scale
+                print("Moving")
+                self.move_vel.angular.z = (self.goal_x-330)*self.mov_scale*0.1
                 self.velocity_pub.publish(self.move_vel)
             elif self.state=="Reached":
                 print("Reached colour %s"%(self.index))
                 rospy.sleep(5)
+                print("Now finding blob %s"%(self.blob_to_find))
                 self.index +=1
                 self.state = "Searching"
+                
             elif self.state == "Finished":
                 self.main_pub.publish("Finished displaying sequence")
                 self.velocity_pub.publish(Twist())
