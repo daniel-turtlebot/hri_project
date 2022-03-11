@@ -14,7 +14,6 @@ emotion_labels = ['angry', 'disgust', 'fear', 'happy', 'sad', 'surprise', 'neutr
 def emo(img_path , detector_backend = 'opencv'):
 
         resp_obj = {}
-
         try:
             img, region = functions.preprocess_face(img = img_path, target_size = (48, 48), grayscale = True, enforce_detection = True, detector_backend = detector_backend, return_region = True)
         except:
@@ -30,25 +29,18 @@ def emo(img_path , detector_backend = 'opencv'):
         resp_obj["dominant_emotion"] = emotion_labels[np.argmax(emotion_predictions)]
         return resp_obj
 
-@app.route('/')
-def home():
-    print("RECEIVE")
-    return "HOME"
 
 @app.route('/reset')
 def reset():
     global count, happy_level
-    c = count
     count = 0
     happy_level = 0
-    return f"{happy_level}"
+    return f"end"
 
 @app.route('/image', methods=['POST'])
 def image():
     global count,happy_level
     data = request.json
-    #h,w = data['height'], data['width']
-    #img = np.fromstring(data['image'],dtype=np.uint8).reshape(h,w,-1)
     img = base64_bytes = data['image'].encode('utf-8')
     img = base64.b64decode(img)
     img = np.fromstring(img,dtype=np.uint8)
@@ -58,12 +50,11 @@ def image():
     print(emotion)
     if emotion:
         happy_level += float(emotion['happy'])
-    count += 1
+        count += 1
     if count == 0:
         return 0
     return f'{happy_level/count}'
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0",port=5000)
-    #app.run(debug=True) #can alter host and port number here. Right now the default host is localhost and port is 5000
-
+   

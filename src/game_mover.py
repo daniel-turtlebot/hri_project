@@ -15,6 +15,7 @@ import numpy as np
 
 import pupil_apriltags as apriltag
 import cv2
+from util import COLOR2TAG
 # import ros_numpy
 
 from collections import defaultdict
@@ -26,10 +27,9 @@ class GameMover():
     def __init__(self):
         rospy.init_node('Mover')
         self.started = False
-        self.orig_color = 'Yellow'
         self.seq = None
         self.blob_to_find = None
-        self.orig_tag = 0
+        self.orig_tag = COLOR2TAG.COLORTAGS['Human']
         self.goal_x = None
 
         #--------------------Define all publishers and subscribers here---------------
@@ -131,7 +131,7 @@ class GameMover():
         return
 
     def change_state(self,comm_str):
-        self.colour_to_tag = {"Yellow":0,"Pink":1,"Red":2,"Orange":3,"Green":4,"Blue":5}
+        self.colour_to_tag = COLOR2TAG.COLORTAGS
         data = comm_str.data
         if data=='end':
             self.started = False

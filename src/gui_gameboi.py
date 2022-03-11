@@ -190,6 +190,16 @@ class gui:
     def start(self):
         self.app.MainLoop()
 
+    def stop(self):
+        def _cleanup():
+            for tlw in wx.GetTopLevelWindows():
+                if tlw:
+                    tlw.Destroy()
+            wx.WakeUpIdle()
+        wx.CallLater(50, _cleanup)
+        del self.app
+        wx.Exit()
+
 if __name__ == '__main__':
     rospy.init_node('GameBoiGui')
     app = wx.App()

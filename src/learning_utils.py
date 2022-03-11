@@ -2,9 +2,10 @@ from numpy import random
 import numpy as np
 
 class Sampler:
-    def __init__(K):
+    def __init__(self, K):
         self.t = None
         self.S = np.zeros(K)
+        #what is this??
         self.F = np.zeros(F)
 
     def sample(self):

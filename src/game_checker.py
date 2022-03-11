@@ -25,19 +25,14 @@
 # ****************************************/
 
 import rospy
-
-import sensor_msgs.point_cloud2 as pc2
-from kobuki_msgs.msg import BumperEvent #Used to detect Bumper Events
-from cmvision.msg import Blob, Blobs #Blob Detection
-from sensor_msgs.msg import PointCloud2
-from geometry_msgs.msg import Twist
 from std_msgs.msg import String
 from sensor_msgs.msg import Image
+
 
 import sys
 import signal
 import numpy as np
-# import ros_numpy
+from util import COLOR2TAG
 
 import pupil_apriltags as apriltag
 import cv2
@@ -67,7 +62,7 @@ class GameCheckerFSM:
         self.index = 0.0
 
         #Store Game Details here
-        self.colour_to_tag = {"Pink":10,"Yellow":2}
+        self.colour_to_tag = COLOR2TAG.COLORTAGS
 
         #Communicating with main
         self.main_sub = rospy.Subscriber('/game_check_state',String,self.change_state,queue_size=1)

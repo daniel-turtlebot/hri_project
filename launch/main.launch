@@ -32,11 +32,14 @@
 
   <node name="cmvision" pkg="cmvision" type="cmvision" args="image:=$(arg image)" output="screen" />
 
+  <node name="emotion" pkg="gameboi" type="emo.py" output="screen"/>
+
   <env name="PYTHONPATH" value="$(arg PY3_PATH):$(arg ORI_PY_PATH)" />
 
   <node name="game_checker" pkg="gameboi" type="game_checker.py" output="screen"/>
 
   <node name="game_mover" pkg="gameboi" type="game_mover.py" output="screen"/>
+
   <node name="gameboi" pkg="gameboi" type="gameboi.py" output="screen"/> 
 
   <env name="PYTHONPATH" value="$(arg ORI_PY_PATH)" />
