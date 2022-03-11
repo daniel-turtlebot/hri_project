@@ -3,6 +3,11 @@
   <!-- <arg name="color_file" default="$(find gameboi)/params/colors.txt" /> -->
   <arg name="image" default="/camera/rgb/image_raw" />
   <arg name="gui" default="false" />
+  <arg name="ORI_PY_PATH" default="$(optenv PYTHONPATH )" />
+  <arg name="PY3_PATH" default="/home/turtlebot/anaconda3/envs/gui/lib/python3.9/site-packages/" />
+
+  
+
 
   <!-- Location of the cmvision color file -->
   <param name="cmvision/color_file" type="string" 
@@ -27,11 +32,14 @@
 
   <node name="cmvision" pkg="cmvision" type="cmvision" args="image:=$(arg image)" output="screen" />
 
-
+  <env name="PYTHONPATH" value="$(arg PY3_PATH):$(arg ORI_PY_PATH)" />
 
   <node name="game_checker" pkg="gameboi" type="game_checker.py" output="screen"/>
 
-  <node name="gameboi" pkg="gameboi" type="gameboi.py" output="screen"/> -->
+  <node name="game_mover" pkg="gameboi" type="game_mover.py" output="screen"/>
+  <node name="gameboi" pkg="gameboi" type="gameboi.py" output="screen"/> 
+
+  <env name="PYTHONPATH" value="$(arg ORI_PY_PATH)" />
 
 
 </launch>

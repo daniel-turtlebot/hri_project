@@ -32,11 +32,15 @@ from cmvision.msg import Blob, Blobs #Blob Detection
 from sensor_msgs.msg import PointCloud2
 from geometry_msgs.msg import Twist
 from std_msgs.msg import String
+from sensor_msgs.msg import Image
 
 import sys
 import signal
 import numpy as np
 # import ros_numpy
+
+import pupil_apriltags as apriltag
+import cv2
 
 from collections import defaultdict
 
@@ -50,16 +54,20 @@ class GameCheckerFSM:
         rospy.init_node('GameCheckerFSM')
 
         # Subscribe to the /blobs topic
-        self.blobs_sub = rospy.Subscriber('/blobs', Blobs, self.blobs_cb)
+        # self.blobs_sub = rospy.Subscriber('/blobs', Blobs, self.blobs_cb)
+        self.detector = apriltag.Detector(nthreads=2,quad_decimate=1,families='tag36h11')
+        self.camera_sub = rospy.Subscriber('/camera/rgb/image_raw', Image, self.april_cb)
 
         #Parameters for speed and control
         self.last_blob = None
+        self.last_tag = None
         self.seq = None
         self.seq_len = 0
         self.started = False
         self.index = 0.0
 
         #Store Game Details here
+        self.colour_to_tag = {"Pink":10,"Yellow":2}
 
         #Communicating with main
         self.main_sub = rospy.Subscriber('/game_check_state',String,self.change_state,queue_size=1)
@@ -75,17 +83,23 @@ class GameCheckerFSM:
         else:
             words = data.split(" ")
             assert words[0]=="start"
-            self.seq = words[1:]
+            self.seq = []
+            for i in words[1:]:
+                self.seq.append(self.colour_to_tag[i])
             self.find_index = 0
+            print(self.seq)
             self.main_pub.publish("LOOKING FOR C0LOURS NOW")
             self.started = True
         return
 
     def set_seq(self,seq):
-        assert 1==0 #Shouldnt be called
-        self.seq = seq
+        # assert 1==0 #Shouldnt be called
+        self.seq = []
+        for i in seq:
+            self.seq.append(self.colour_to_tag[i])
         self.seq_len = len(seq)
         self.find_index = 0
+        self.started = True
         return
 
 
@@ -98,6 +112,45 @@ class GameCheckerFSM:
         It finds the mean of all blob center points to detect the goal of movement. If the
         maximum blob size is greater than threshold, it asserts that the bot has reached its destination.
     """
+    def get_tag_size(self,corners):
+        corners = np.array(corners)
+        # print(corners)
+        l1 = np.sqrt(np.sum((corners[0]-corners[1])**2))
+        l2 = np.sqrt(np.sum((corners[0]-corners[2])**2))
+        # print(l1*l2/10)
+        return l1*l2/10
+
+    def april_cb(self,image):
+        if not self.started: return 
+        # print("TEST")
+        im = np.frombuffer(image.data, dtype=np.uint8).reshape(image.height, image.width, -1)
+        im_gray = cv2.cvtColor(im, cv2.COLOR_RGB2GRAY)
+        result = self.detector.detect(im_gray)
+        detected_tag = None
+        max_size = -1e6
+        for tag in result:
+            # print(tag.tag_id)
+            size_tag = self.get_tag_size(tag.corners)
+            if size_tag>max_size:
+                detected_tag = tag.tag_id
+                max_size = size_tag
+        if detected_tag==None: return
+        if not self.last_tag or detected_tag!=self.last_tag:
+            self.last_tag = detected_tag
+            if detected_tag==self.seq[self.find_index]:
+                send_string = "Found %s"%(detected_tag)
+                self.find_index+=1
+                if self.find_index==len(self.seq):
+                    send_string += "\nGame Passed"
+                    self.started = False
+                self.main_pub.publish(send_string)
+                print(send_string)
+            else:
+                self.main_pub.publish("Found %s,Wrong Sequence, please restart"%(detected_tag))
+                self.find_index=0 #Resetting
+                print("Found %s,Wrong Sequence, please restart"%(detected_tag))
+
+
     def blobs_cb(self, blobsIn):
         # if self.state==3: return
         if not self.started: return
@@ -180,5 +233,5 @@ if __name__ == '__main__':
     print("Running on Python ",sys.version)
     signal.signal(signal.SIGINT, sigint_handler) #Used to stop the bot safely using Ctrl+C
     game_checker = GameCheckerFSM()
-    # game_checker.set_seq(['Red','Green','Red'])
+    # game_checker.set_seq(['Pink','Yellow','Pink'])
     game_checker.run()

@@ -5,8 +5,7 @@ from tracemalloc import start
 import rospy
 import sys
 
-print(sys.version_info)
-
+import signal
 import sensor_msgs.point_cloud2 as pc2
 
 from cmvision.msg import Blob, Blobs
@@ -20,9 +19,16 @@ from sensor_msgs.msg import CompressedImage
 from std_msgs.msg import String
 import threading
 import gui_gameboi as guigb
-import game_checker as gc
 import wx
 from utill import *
+
+
+def sigint_handler(signal, frame):
+	sys.exit(0)
+
+class GAME:
+    VISUAL = 0
+    MOVEMENT = 1
 
 class GameBoi:
 
@@ -32,8 +38,11 @@ class GameBoi:
         # # Publish commands to the robot
         # self.velocity_pub = rospy.Publisher('cmd_vel_mux/input/teleop', Twist, queue_size=1)
 
-        self.game_check_st_sub = rospy.Publisher('/game_check_state', String, queue_size=1)
-        self.game_check_sub = rospy.Subscriber('/game_checker', String , self.game_check , queue_size=1)
+        self.game_check_pub = rospy.Publisher('/game_check_state', String, queue_size=1)
+        self.game_check_sub = rospy.Subscriber('/game_checker', String , self.game_check_cb , queue_size=1)
+
+        self.game_mover_sub = rospy.Subscriber('/game_mover',String, self.game_mover_cb, queue_size=1)
+        self.game_mover_pub = rospy.Publisher('/game_mover_state',String , queue_size=1)
         # self.camera_sub = rospy.Subscriber('/robot1/camera/rgb/image_raw/compressed', CompressedImage, self.emo_rec_cp_cb, queue_size = 1)
         self.state = GENERAL_STATE.INITIAL
         self.game_state = GAME_STATE.NOT_PLAYING
@@ -45,8 +54,10 @@ class GameBoi:
         while self.panel is None:
             rospy.sleep(0.2)
         self.game_check_str = None
+        self.game_mover_str = None
         self.flags = FLAGS()
         self.signals = SIGNALS()
+        self.game_mode = 1
 
     def start_gui(self):
         self.gui = guigb.gui()
@@ -55,13 +66,23 @@ class GameBoi:
         self.gui.start()
 
 
-    def pub_checker_state(self,text):
+    def game_mover_cb(self,s):
+        self.game_mover_str = s.data
+
+    def game_check_cb(self, s):
+        self.game_check_str = s.data
+
+    def pub_mover(self,text):
         s = String()
         s.data = text
-        self.game_check_st_sub.publish(s)
+        self.game_mover_pub.publish(s)
 
-    def game_check(self, s):
-        self.game_check_str = s.data
+    def pub_checker(self,text):
+        s = String()
+        s.data = text
+        self.game_check_pub.publish(s)
+
+    
 
     def update_gui_text(self,text):
         wx.CallAfter(self.panel.update_text, text)
@@ -138,6 +159,10 @@ class GameBoi:
                 print("GAME: DECISION")
                 self.flags.set(finish_game=True)
 
+    def get_game(self):
+        self.game_mode = GAME.VISUAL
+        
+
     def prompt_Q(self):
         self.update_gui_text("Do You Want To Play A Game With Me?")
         want_to_play = False
@@ -150,23 +175,32 @@ class GameBoi:
         if want_to_play:
             self.update_gui_text("Let's Play The Game!")
             self.flags.set(human_reponse=True)
+            self.get_game()
             rospy.sleep(2)
         else:
             self.flags.set(human_reponse=False)
 
 
     def prompt_game_Q(self):
-        self.update_gui_text("The Seq is Pink Yellow Pink")
+        if self.game_mode == GAME.VISUAL:
+            self.update_gui_text("The Seq is Pink Yellow Pink")
+            rospy.sleep(3)
+        else:
+            self.update_gui_text("Please Follow The Robot And Remember The Color")
+            self.pub_mover("start Pink")
+            while(self.game_mover_str != 'end'):
+                print("WAITING")
+                rospy.sleep(0.5)
+
         self.flags.set(finish_game_q=True)
-        rospy.sleep(3)
 
     def verify_ans(self):
         self.update_gui_text("Please Display The Color Sequence In Order")
         rospy.sleep(1)
-        self.pub_checker_state("start Pink Yellow Pink")
+        self.pub_checker("start Pink Yellow Pink")
         while(not self.game_check_str):
             print("FIND STRING")
-            rospy.sleep(0.1)
+            rospy.sleep(0.5)
         ps = None
         while(self.game_check_str != 'end'):
             if ps != self.game_check_str:
@@ -243,5 +277,6 @@ class GameBoi:
 
 
 if __name__ == '__main__':
+    # signal.signal(signal.SIGINT, sigint_handler)
     l4e = GameBoi()
     l4e.run()
