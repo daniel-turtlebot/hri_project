@@ -41,11 +41,12 @@ class GameBoi:
         self.game_check_pub = rospy.Publisher('/game_check_state', String, queue_size=1)
         self.game_check_sub = rospy.Subscriber('/game_checker', String , self.game_check_cb , queue_size=1)
 
-        self.game_mover_sub = rospy.Subscriber('/game_mover',String, self.game_mover_cb, queue_size=1)
         self.game_mover_pub = rospy.Publisher('/game_mover_state',String , queue_size=1)
+        self.game_mover_sub = rospy.Subscriber('/game_mover',String, self.game_mover_cb, queue_size=1)
+        
 
-        self.emotion_sub = rospy.Publisher('/emotion_state', String, self.emotion_cb, queue_size=1)
-        self.emotion_pub = rospy.Subscriber('/emotion',String , queue_size=1)
+        self.emotion_sub = rospy.Publisher('/emotion_state', String, queue_size=1)
+        self.emotion_pub = rospy.Subscriber('/emotion',String, self.emotion_cb, queue_size=1)
        
         self.flags = FLAGS()
         self.signals = SIGNALS()

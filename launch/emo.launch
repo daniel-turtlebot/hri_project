@@ -1,0 +1,21 @@
+<launch>
+ 
+  <arg name="image" default="/camera/rgb/image_raw" />
+  <arg name="gui" default="false" />
+
+  <include file="$(find turtlebot_bringup)/launch/minimal.launch"/>
+
+  <!-- <include file="$(find astra_launch)/launch/astra_pro.launch"/> -->
+
+  <include file="$(find turtlebot_bringup)/launch/minimal.launch"/>
+
+  <include file="$(find astra_launch)/launch/astra_pro.launch" args="device_id:=#1"/>
+  <include file="$(find astra_launch)/launch/astra_pro.launch" args="device_id:=#2"/>
+  
+
+  <param name="camera/rgb/image_color/compressed/jpeg_quality" value="22"/>
+
+  
+
+  <!-- <node name="controller" pkg="lab4" type="lab4_example.py" output="screen" /> -->
+</launch>

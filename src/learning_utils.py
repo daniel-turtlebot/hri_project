@@ -6,6 +6,7 @@ class Sampler:
         self.t = None
         self.S = np.zeros(K)
         #what is this??
+        F = 10
         self.F = np.zeros(F)
 
     def sample(self):

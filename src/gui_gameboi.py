@@ -1,3 +1,4 @@
+#!/home/turtlebot/anaconda3/envs/gui/bin/python3
 from ctypes import sizeof
 from numpy import size
 import wx
@@ -9,7 +10,6 @@ class GameFlags: #Use this for all game related flags
     def __init__(self):
         self.enter_pressed = False
         self.curr_game = 0
-
 
 class MyPanel(wx.Panel):
     #----------------------------------------------------------------------
@@ -138,6 +138,7 @@ class MyPanel(wx.Panel):
         if key_code == wx.WXK_ESCAPE:
             self.GetParent().Close()
         elif key_code == wx.WXK_RETURN:
+            # print("Enter Pressed")
             if not self.started:
                 self.started = True
                 # print("Start received")
@@ -146,9 +147,10 @@ class MyPanel(wx.Panel):
                 self.GAMEFLAGS.enter_pressed = True
         elif key_code == wx.WXK_BACK:
             # print("right received")
-            self.text_str = get_colour_order()
-            self.new_test = True
-            self.update_display(exc_inst=True)
+            # self.text_str = get_colour_order()
+            # self.new_test = True
+            # self.update_display(exc_inst=True)
+            self.GetParent().show_form()
         else:
             event.Skip()
 
@@ -173,6 +175,20 @@ class Puzzle_Bot_GUI(wx.Frame):
         wx.Frame.__init__(self, None, title="Test FullScreen")
         self.panel = MyPanel(self)
         self.Show()
+
+    def show_form(self): #Call this to display the survey form
+        self.panel.Close() #Destroy the other panel
+        self.form_panel = TestFrame(self)
+        self.form_panel.Show()
+        return
+    
+    def show_game(self): #Call this to restart the game
+        self.form_panel.Destroy()
+        # wx.Frame.__init__(self, None, title="Test FullScreen")
+        self.panel = MyPanel(self)
+        # self.Bind(wx.EVT_KEY_DOWN, self.on_press)
+        # self.ShowFullScreen(True)
+        self.Show()
     
     def on_press(self, event):
         value = self.text_ctrl.GetValue()
@@ -180,6 +196,78 @@ class Puzzle_Bot_GUI(wx.Frame):
             print("You didn't enter anything!")
         else:
             print(f'You typed: "{value}"')
+
+class TestFrame(wx.Frame):
+    def __init__(self,parent):
+        wx.Frame.__init__(self, parent, -1, "Please take a few seconds to rate your experience")
+        panel = wx.Panel(self)
+        self.Bind(wx.EVT_KEY_DOWN, self.onKey)
+
+        # First create the controls
+        topLbl = wx.StaticText(panel, -1, "Survey Questions")
+        topLbl.SetFont(wx.Font(18, wx.SWISS, wx.NORMAL, wx.BOLD))
+
+        nameLbl = wx.StaticText(panel, -1, "Name:")
+        self.name = wx.TextCtrl(panel, -1, "")
+
+        ratingLbl = wx.StaticText(panel, -1, "Rating:")
+        self.rating = wx.TextCtrl(panel, -1, "")
+
+        addrLbl = wx.StaticText(panel, -1, "Comments:")
+        self.addr1 = wx.TextCtrl(panel, -1, "")
+
+        self.saveBtn = wx.Button(panel, -1, "Save")
+        self.saveBtn.Bind(wx.EVT_BUTTON,self.OnSaveClick)
+        self.cancelBtn = wx.Button(panel, -1, "Cancel")
+        self.cancelBtn.Bind(wx.EVT_BUTTON,self.OnCancelClick) 
+
+        mainSizer = wx.BoxSizer(wx.VERTICAL)
+        mainSizer.Add(topLbl, 0, wx.ALL, 5)
+        mainSizer.Add(wx.StaticLine(panel), 0,wx.EXPAND|wx.TOP|wx.BOTTOM, 5)
+
+        addrSizer = wx.FlexGridSizer(cols=2, hgap=5, vgap=5)
+        addrSizer.AddGrowableCol(1)
+        addrSizer.Add(nameLbl, 0,
+                wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        addrSizer.Add(self.name, 0, wx.EXPAND)
+        addrSizer.Add(ratingLbl, 0,
+                wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        addrSizer.Add(self.rating, 0, wx.EXPAND)
+        addrSizer.Add(addrLbl, 0,
+                wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        addrSizer.Add(self.addr1, 0, wx.EXPAND)
+        addrSizer.Add((10,10)) # some empty space
+
+        mainSizer.Add(addrSizer, 0, wx.EXPAND|wx.ALL, 10)
+
+
+        btnSizer = wx.BoxSizer(wx.HORIZONTAL)
+        btnSizer.Add((20,20), 1)
+        btnSizer.Add(self.saveBtn)
+        btnSizer.Add((20,20), 1)
+        btnSizer.Add(self.cancelBtn)
+        btnSizer.Add((20,20), 1)
+
+        mainSizer.Add(btnSizer, 0, wx.EXPAND|wx.BOTTOM, 10)
+
+        panel.SetSizer(mainSizer)
+    
+    def OnSaveClick(self,event):
+        # btn = event.GetEventObject().GetLabel() 
+        # print("Label of pressed button = ",btn)
+        value = self.name.GetValue() + "|" + self.rating.GetValue() + "|" + self.addr1.GetValue() + "\n"
+        fileh = open('Survey_out.txt',"a")
+        fileh.write(value)
+        fileh.close()
+        self.GetParent().show_game()
+    
+    def OnCancelClick(self,event):
+        self.GetParent().show_game()
+    
+    def onKey(self, event):
+        key_code = event.GetKeyCode()
+        if key_code == wx.WXK_ESCAPE:
+            self.GetParent().Close()
 
 class gui:
     def __init__(self):
@@ -204,5 +292,4 @@ if __name__ == '__main__':
     rospy.init_node('GameBoiGui')
     app = wx.App()
     frame = Puzzle_Bot_GUI()
-    # rospy.spin()
     app.MainLoop()

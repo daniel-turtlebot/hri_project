@@ -27,7 +27,7 @@ class Emotion:
         self.emotion_sub = rospy.Subscriber('/emotion_state', String, self.emo_st_cb, queue_size=1)
         self.emotion_pub = rospy.Publisher('/emotion',String , queue_size=1)
         self.score = '0'
-        self.base_url = 'http://ec2-54-68-48-154.us-west-2.compute.amazonaws.com:5000/'
+        self.base_url = 'http://ec2-18-237-190-52.us-west-2.compute.amazonaws.com:5000/'
         self.session = requests.Session()
         self.headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
         self.started = False

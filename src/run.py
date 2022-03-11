@@ -40,6 +40,7 @@ class GameBot:
         Call From Main Controller, replace first part of run and do_action
         """
         ## sample an action & perform the action
+        return 0
         self.a_t = self.sampler.sample()
         return self.a_t
     

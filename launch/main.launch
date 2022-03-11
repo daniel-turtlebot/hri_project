@@ -27,7 +27,8 @@
 
   <include file="$(find turtlebot_bringup)/launch/minimal.launch"/>
 
-  <include file="$(find astra_launch)/launch/astra_pro.launch"/>
+  <include file="$(find astra_launch)/launch/astra_pro.launch" args="device_id:=#1"/>
+  <include file="$(find astra_launch)/launch/astra_pro.launch" args="device_id:=#2"/>
 
 
   <node name="cmvision" pkg="cmvision" type="cmvision" args="image:=$(arg image)" output="screen" />
