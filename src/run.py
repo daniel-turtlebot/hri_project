@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import learning_utils 
+import util
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LogisticRegression
 
@@ -8,9 +9,9 @@ class GameBot:
     def __init__(self):
         self.num_games = 2
         self.num_feedback = 16
+        self.num_correct = 4
+        self.num_incorrect = 4
         self.num_actions = self.num_games * self.num_feedback
-        self.game = None # code in 0,1,2
-        self.feedback = None # code in 0,1,...,N=number of types of feedback
 
         self.sampler = learning_utils.Sampler(self.num_actions)
 
@@ -21,18 +22,17 @@ class GameBot:
 
         self.a_t = None
 
-    def do_action(self,action_idx):
-        """
-        Executes the action indexed by the argument. 
-        Returns the reward from that action (perceived enjoyment)
-        """
-        pass
-    
     def action_to_x(self,a_t):
         """ 
-        Convert action index to a single vector of categorical vars
+        Convert action index to a single vector of one-hot encoded vars
         """
-        pass
+        x_dim = self.num_games + self.num_correct + self.num_incorrect
+        x = np.zeros(x_dim)
+        game,correct,incorrect = util.ACTIONS.get_game_action(a_t)
+        x[game] = 1
+        x[self.num_games + correct] = 1
+        x[x_dim] = 1 
+        return x
 
     
     def get_action(self):
@@ -40,7 +40,6 @@ class GameBot:
         Call From Main Controller, replace first part of run and do_action
         """
         ## sample an action & perform the action
-        return 0
         self.a_t = self.sampler.sample()
         return self.a_t
     
@@ -58,7 +57,8 @@ class GameBot:
         self.y.append(y_t)
         self.a_t = None
 
-
+    def do_action(self):
+        pass
 
     def end(self):
         Xs = self.X
@@ -77,11 +77,8 @@ class GameBot:
         np.savetxt(params_file,model.coef_)
 
 
-
     def run(self):
-        """
-        Run experiments
-        """
+        ### Run experiments
 
         ## sample an action
         a_t = sampler.sample()
@@ -96,7 +93,6 @@ class GameBot:
         self.t += 1
         self.X.append(x_t)
         self.y.append(y_t)
-         
 
 if __name__ == "main":
     gamebot = GameBot()
