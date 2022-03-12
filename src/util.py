@@ -99,6 +99,17 @@ class ACTIONS:
         correct = CORRECT.get_action(i//4)
         incorrect = INCORRECT.get_action(i%4)
         return (game,correct,incorrect)
+
+    def get_game_action1(i):
+        game = None
+        correct = None
+        incorrect = None
+        
+        game = i // 16
+        i = i % 16
+        correct = i//4
+        incorrect = i%4
+        return (game,correct,incorrect)
         
 
 class SPEACH_STRING:

@@ -104,7 +104,6 @@ class GameBoi:
         
         actions = ACTIONS.get_game_action(self.backend.get_action())
         self.game_mode, self.resp_correct, self.resp_incorrect = actions
-        self.game_mode = GAME.VISUAL
         self.game_seq = self.generate_game_seq()
 
     def generate_game_seq(self):
@@ -248,14 +247,14 @@ class GameBoi:
         self.flags.set(finish_ans_verify=True)
 
     def pre_survey(self):
-        wx.CallAfter(self.gui.frame.show_form)
+        wx.CallAfter(self.gui.frame.show_pre_form)
 
         while self.gui.frame.form_panel is None:
             rospy.sleep(0.1)
         
         while not self.gui.frame.form_panel.button_clicked:
             rospy.sleep(0.5)
-        self.test = float(self.gui.frame.form_panel.saved_rating)
+        self.pre_reward = tuple([ float(text) for text in self.gui.frame.form_panel.saved_rating])
         wx.CallAfter(self.gui.frame.show_game)
         
         self.panel = self.gui.frame.panel
@@ -263,7 +262,7 @@ class GameBoi:
     def update_backend(self):
         #TODO
 
-        wx.CallAfter(self.gui.frame.show_form)
+        wx.CallAfter(self.gui.frame.show_post_form)
         self.pub_emotion("end")
 
         while self.gui.frame.form_panel is None:
@@ -275,9 +274,9 @@ class GameBoi:
             print("Waiting Reward EMO")
             rospy.sleep(0.5)
 
-        self.reward_survey = float(self.gui.frame.form_panel.saved_rating)
+        self.post_reward = float(self.gui.frame.form_panel.saved_rating)
 
-        self.backend.update_reward(self.reward_survey,self.reward_emotion,self.num_fails)
+        self.backend.update_reward(self.post_reward,self.reward_emotion,self.num_fails)
         self.flags.set(finish_game=True)
         wx.CallAfter(self.gui.frame.show_game)
         self.panel = self.gui.frame.panel

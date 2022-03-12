@@ -178,10 +178,17 @@ class Puzzle_Bot_GUI(wx.Frame):
         self.previous = None
         self.Show()
 
-    def show_form(self): #Call this to display the survey form
+    def show_pre_form(self): #Call this to display the survey form
         # self.previous = self.panel
         # self.panel.Close() #Destroy the other panel
         self.form_panel = TestFrame(self)
+        self.form_panel.Show()
+        return
+
+    def show_post_form(self): #Call this to display the survey form
+        # self.previous = self.panel
+        # self.panel.Close() #Destroy the other panel
+        self.form_panel = TestFrame1(self)
         self.form_panel.Show()
         return
     
@@ -209,7 +216,7 @@ class TestFrame(wx.Frame):
 
         # First create the controls
         topLbl = wx.StaticText(panel, -1, "Survey Questions")
-        topLbl.SetFont(wx.Font(18, wx.SWISS, wx.NORMAL, wx.BOLD))
+        topLbl.SetFont(wx.Font(23, wx.SWISS, wx.NORMAL, wx.BOLD))
 
         # self.comm_sub = rospy.Publisher('/survey', String, queue_size=1)
         self.button_clicked = False
@@ -218,8 +225,17 @@ class TestFrame(wx.Frame):
         nameLbl = wx.StaticText(panel, -1, "Name:")
         self.name = wx.TextCtrl(panel, -1, "")
 
-        ratingLbl = wx.StaticText(panel, -1, "Rating:")
-        self.rating = wx.TextCtrl(panel, -1, "")
+        instLbl = wx.StaticText(panel, -1, "On a scale of 1-5 how much do you agree with the following:")
+        instLbl.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD))
+
+        ratingLbl1 = wx.StaticText(panel, -1, "I feel conforted being with robots that have emotion")
+        self.rating1 = wx.TextCtrl(panel, -1, "")
+
+        ratingLbl2 = wx.StaticText(panel, -1, "I would feel very nervous just standing in front of a robot")
+        self.rating2 = wx.TextCtrl(panel, -1, "")
+
+        ratingLbl3 = wx.StaticText(panel, -1, "I would feel paranoid talking with a robot")
+        self.rating3 = wx.TextCtrl(panel, -1, "")
 
         addrLbl = wx.StaticText(panel, -1, "Comments:")
         self.addr1 = wx.TextCtrl(panel, -1, "")
@@ -233,14 +249,28 @@ class TestFrame(wx.Frame):
         mainSizer.Add(topLbl, 0, wx.ALL, 5)
         mainSizer.Add(wx.StaticLine(panel), 0,wx.EXPAND|wx.TOP|wx.BOTTOM, 5)
 
-        addrSizer = wx.FlexGridSizer(cols=2, hgap=5, vgap=5)
-        addrSizer.AddGrowableCol(1)
-        addrSizer.Add(nameLbl, 0,
+
+        addrSizer1 = wx.FlexGridSizer(cols=2, hgap=3, vgap=3)
+        addrSizer1.AddGrowableCol(1)
+        addrSizer1.Add(nameLbl, 0,
                 wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        addrSizer.Add(self.name, 0, wx.EXPAND)
-        addrSizer.Add(ratingLbl, 0,
-                wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        addrSizer.Add(self.rating, 0, wx.EXPAND)
+        addrSizer1.Add(self.name, 0, wx.EXPAND)
+        mainSizer.Add(addrSizer1, 0, wx.EXPAND|wx.ALL, 10)
+
+        mainSizer.Add(instLbl, 0, wx.ALL, 5)
+        mainSizer.Add(wx.StaticLine(panel), 0,wx.EXPAND|wx.TOP|wx.BOTTOM, 5)
+
+        addrSizer = wx.FlexGridSizer(cols=2, hgap=3, vgap=3)
+        # addrSizer.AddGrowableCol(1)
+        mainSizer.Add(ratingLbl1, 0, wx.ALL, 5)
+        mainSizer.Add(self.rating1, 0, wx.ALL,5)
+
+        mainSizer.Add(ratingLbl2, 0, wx.ALL, 5)
+        mainSizer.Add(self.rating2, 0, wx.ALL,5)
+
+        mainSizer.Add(ratingLbl3, 0, wx.ALL, 5)
+        mainSizer.Add(self.rating3, 0, wx.ALL,5)
+
         addrSizer.Add(addrLbl, 0,
                 wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
         addrSizer.Add(self.addr1, 0, wx.EXPAND)
@@ -257,15 +287,14 @@ class TestFrame(wx.Frame):
         btnSizer.Add((20,20), 1)
 
         mainSizer.Add(btnSizer, 0, wx.EXPAND|wx.BOTTOM, 10)
-
         panel.SetSizer(mainSizer)
     
     def OnSaveClick(self,event):
         # btn = event.GetEventObject().GetLabel() 
         # print("Label of pressed button = ",btn)
-        value = self.name.GetValue() + "|" + self.rating.GetValue() + "|" + self.addr1.GetValue() + "\n"
-        self.saved_rating = self.rating.GetValue()
-        fileh = open('Survey_out.txt',"a")
+        value = self.name.GetValue() + "|" + self.rating1.GetValue() + "|" + self.rating2.GetValue() + "|" + self.rating3.GetValue() + "|" + self.addr1.GetValue() + "\n"
+        self.saved_rating = [self.rating1.GetValue(),self.rating2.GetValue(),self.rating3.GetValue()]
+        fileh = open('pre_Survey_out.txt',"a")
         fileh.write(value)
         fileh.close()
         # self.comm_sub.publish("enter")
@@ -274,7 +303,90 @@ class TestFrame(wx.Frame):
         # self.GetParent().show_game()
     
     def OnCancelClick(self,event):
-        self.comm_sub.publish("enter")
+        # self.comm_sub.publish("enter")
+        self.button_clicked = True
+        # self.GetParent().show_game()
+    
+    def onKey(self, event):
+        key_code = event.GetKeyCode()
+        if key_code == wx.WXK_ESCAPE:
+            self.GetParent().Close()
+
+
+class TestFrame1(wx.Frame):
+    def __init__(self,parent):
+        wx.Frame.__init__(self, parent, -1, "Please take a few seconds to rate your experience")
+        panel = wx.Panel(self)
+        self.Bind(wx.EVT_KEY_DOWN, self.onKey)
+
+        # First create the controls
+        topLbl = wx.StaticText(panel, -1, "Survey Questions")
+        topLbl.SetFont(wx.Font(23, wx.SWISS, wx.NORMAL, wx.BOLD))
+
+        # self.comm_sub = rospy.Publisher('/survey', String, queue_size=1)
+        self.button_clicked = False
+        self.saved_rating = None
+
+        nameLbl = wx.StaticText(panel, -1, "Name:")
+        self.name = wx.TextCtrl(panel, -1, "")
+
+        instLbl = wx.StaticText(panel, -1, "On a scale of 1-5 how much do you agree with the following:")
+        instLbl.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD))
+
+        ratingLbl1 = wx.StaticText(panel, -1, "Rate Your Experience")
+        self.rating1 = wx.TextCtrl(panel, -1, "")
+
+        self.saveBtn = wx.Button(panel, -1, "Save")
+        self.saveBtn.Bind(wx.EVT_BUTTON,self.OnSaveClick)
+        self.cancelBtn = wx.Button(panel, -1, "Cancel")
+        self.cancelBtn.Bind(wx.EVT_BUTTON,self.OnCancelClick) 
+
+        mainSizer = wx.BoxSizer(wx.VERTICAL)
+        mainSizer.Add(topLbl, 0, wx.ALL, 5)
+        mainSizer.Add(wx.StaticLine(panel), 0,wx.EXPAND|wx.TOP|wx.BOTTOM, 5)
+
+
+        addrSizer1 = wx.FlexGridSizer(cols=2, hgap=3, vgap=3)
+        addrSizer1.AddGrowableCol(1)
+        addrSizer1.Add(nameLbl, 0,
+                wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        addrSizer1.Add(self.name, 0, wx.EXPAND)
+        mainSizer.Add(addrSizer1, 0, wx.EXPAND|wx.ALL, 10)
+
+        mainSizer.Add(instLbl, 0, wx.ALL, 5)
+        mainSizer.Add(wx.StaticLine(panel), 0,wx.EXPAND|wx.TOP|wx.BOTTOM, 5)
+
+        addrSizer = wx.FlexGridSizer(cols=2, hgap=3, vgap=3)
+        # addrSizer.AddGrowableCol(1)
+        mainSizer.Add(ratingLbl1, 0, wx.ALL, 5)
+        mainSizer.Add(self.rating1, 0, wx.ALL,5)
+
+
+        btnSizer = wx.BoxSizer(wx.HORIZONTAL)
+        btnSizer.Add((20,20), 1)
+        btnSizer.Add(self.saveBtn)
+        btnSizer.Add((20,20), 1)
+        btnSizer.Add(self.cancelBtn)
+        btnSizer.Add((20,20), 1)
+
+        mainSizer.Add(btnSizer, 0, wx.EXPAND|wx.BOTTOM, 10)
+        panel.SetSizer(mainSizer)
+    
+    def OnSaveClick(self,event):
+        # btn = event.GetEventObject().GetLabel() 
+        # print("Label of pressed button = ",btn)
+        value = self.name.GetValue() + "|" + self.rating1.GetValue() + "|" + self.rating2.GetValue() + "|" + self.rating3.GetValue() + "|" + self.addr1.GetValue() + "\n"
+        self.saved_rating = self.rating1.GetValue()
+        fileh = open('post_Survey_out.txt',"a")
+        fileh.write(value)
+        fileh.close()
+        # self.comm_sub.publish("enter")
+        self.button_clicked = True
+
+        # self.GetParent().show_game()
+    
+    def OnCancelClick(self,event):
+        # self.comm_sub.publish("enter")
         self.button_clicked = True
         # self.GetParent().show_game()
     

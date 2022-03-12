@@ -29,7 +29,7 @@ class GameBot:
         """
         x_dim = self.num_games + self.num_correct + self.num_incorrect
         x = np.zeros(x_dim)
-        game,correct,incorrect = util.ACTIONS.get_game_action(a_t)
+        game,correct,incorrect = util.ACTIONS.get_game_action1(a_t)
         x[game] = 1
         x[self.num_games + correct] = 1
         x[x_dim] = 1 
