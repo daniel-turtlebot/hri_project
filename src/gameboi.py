@@ -132,7 +132,7 @@ class GameBoi:
         elif act_type == 'phrases':
             self.audio_out(act)
         elif act_type == 'movement':
-            self.audio_out('You Are Correct YA')
+            self.audio_out('You Are Correct YA',anyc=True)
 
 
             self.pub_bot_vel(0,.5,0.2,repeat=4)
@@ -214,12 +214,12 @@ class GameBoi:
         # self.flags.set(finish_game_q=True)
         # return
         if self.game_mode == GAME.VISUAL:
-            self.audio_out(SPEACH_STRING.Instructions1)
             self.update_gui_text(self.game_seq)
-            rospy.sleep(3)
+            self.audio_out(SPEACH_STRING.Instructions1,anyc=True)
+            rospy.sleep(6)
         else:
-            self.audio_out(SPEACH_STRING.Instructions2)
             self.update_gui_text("Please Follow The Robot And Remember The Color")
+            self.audio_out(SPEACH_STRING.Instructions2)
             self.pub_mover(self.game_seq)
             while(self.game_mover_str != 'end'):
                 print("WAITING Q")
@@ -263,7 +263,14 @@ class GameBoi:
         
         while not self.gui.frame.form_panel.button_clicked:
             rospy.sleep(0.5)
-        self.pre_reward = tuple([ float(text) for text in self.gui.frame.form_panel.saved_rating])
+        
+       
+        try:
+            self.pre_reward = tuple([ float(text) if text else 1 for text in self.gui.frame.form_panel.saved_rating])
+        except:
+            print("Conversion Error 1")
+            self.pre_reward = (1,1,1)
+        
         wx.CallAfter(self.gui.frame.show_game)
         
         self.panel = self.gui.frame.panel
@@ -284,10 +291,21 @@ class GameBoi:
             rospy.sleep(0.5)
 
         print("TEST")
-        self.post_reward = float(self.gui.frame.form_panel.saved_rating)
+        if self.gui.frame.form_panel.saved_rating:
+            try:
+                self.post_reward = float(self.gui.frame.form_panel.saved_rating)
+            except:
+                print("Conversion Error 2")
+                self.post_reward = 1
+        else:
+            self.post_reward = 1
         self.reward_emotion = 5 * (self.reward_emotion/100)
         self.backend.update_reward(self.pre_reward,self.post_reward,self.reward_emotion,self.num_fails)
         self.flags.set(finish_game=True)
+
+        fileh = open('/home/turtlebot/chocolate_ws/src/gameboi/survey/survey.txt',"a")
+        fileh.write(f'time {time.time()}, emo {self.reward_emotion}, pre {self.pre_reward}, post {self.post_reward} , fails {self.num_fails}')
+        fileh.close()
         print("TEST1")
         wx.CallAfter(self.gui.frame.show_game)
         self.panel = self.gui.frame.panel
@@ -378,6 +396,6 @@ class GameBoi:
 
 gameboi = None
 if __name__ == '__main__':
-    # signal.signal(signal.SIGINT, sigint_handler)
+    signal.signal(signal.SIGINT, sigint_handler)
     gameboi = GameBoi()
     gameboi.run()
