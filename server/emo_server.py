@@ -4,6 +4,27 @@ from deepface import DeepFace
 from deepface.commons import functions
 import cv2
 import base64
+
+
+"""
+* Filename: emo_server.py
+* Student: Harsh Deshpande, hdeshpande@ucsd.edu; Daniel Beaglehole, dbeaglehole@ucsd.edu; Divyam Bapna, dbapna@ucsd.edu; Chao Chi Cheng, cccheng@ucsd.edu
+* Project #6:  GameBoi
+*
+* Description: This is the Emotion Detection Server File for GameBoi Project. The launch file to start 
+               the GameBoi is main.launch under the launch folder. This program aims to send get 
+               image frame from client and anyalize how happy a user is. It will return a single
+               value when get the request from the client. 
+*
+*How to use:
+* Usage:
+*   python3 emo_server.py
+* Requirement:
+*   AWS EC2
+"""
+
+
+
 app = Flask('__name__')
 count = 0
 happy_level = 0
@@ -12,7 +33,9 @@ emo_model = DeepFace.build_model('Emotion')
 emotion_labels = ['angry', 'disgust', 'fear', 'happy', 'sad', 'surprise', 'neutral']
 
 def emo(img_path , detector_backend = 'opencv'):
-
+        '''
+        Main Analyze funtion to output emotion state of a target
+        '''
         resp_obj = {}
         try:
             img, region = functions.preprocess_face(img = img_path, target_size = (48, 48), grayscale = True, enforce_detection = True, detector_backend = detector_backend, return_region = True)
@@ -32,6 +55,9 @@ def emo(img_path , detector_backend = 'opencv'):
 
 @app.route('/reset')
 def reset():
+    '''
+        reset for different games
+    '''
     global count, happy_level
     count = 0
     happy_level = 0
@@ -39,6 +65,10 @@ def reset():
 
 @app.route('/image', methods=['POST'])
 def image():
+    '''
+        Receive images from client and process in emo function
+        Return Happy level range from 0 to 100
+    '''
     global count,happy_level
     data = request.json
     img = base64_bytes = data['image'].encode('utf-8')
@@ -52,7 +82,7 @@ def image():
         happy_level += float(emotion['happy'])
         count += 1
     if count == 0:
-        return 0
+        return f'{0}'
     return f'{happy_level/count}'
 
 if __name__ == "__main__":

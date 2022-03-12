@@ -1,6 +1,28 @@
 from random import randint 
 
+"""
+* Filename: util.py
+* Student: Harsh Deshpande, hdeshpande@ucsd.edu; Daniel Beaglehole, dbeaglehole@ucsd.edu; Divyam Bapna, dbapna@ucsd.edu; Chao Chi Cheng, cccheng@ucsd.edu
+* Project #6:  GameBoi
+*
+* Description: This is the util file for GameBoi Project. The launch file to start the GameBoi is 
+               main.launch under the launch folder. This program aims to store a set of predefined
+               value for all the files to use
+*
+*How to use:
+* Build:
+*   catkin build
+*   source ~/catkin_ws/devel/setup.bash
+* Usage:
+*   roslaunch gameboi main.launch
+* Requirement:
+*   Make sure every python files permission is set properly
+"""
+
 class GAME:
+    '''
+    Game Mode ENUM
+    '''
     @classmethod
     def get_game(cls, i):
         return [cls.VISUAL,cls.MOVEMENT][i]
@@ -8,6 +30,9 @@ class GAME:
     MOVEMENT = 1
 
 class GENERAL_STATE:
+    '''
+    GENERAL STATE ENUM
+    '''
     INITIAL = 0
     SEARCHING = 1
     MOVING_TO_HUMAN = 2
@@ -15,6 +40,9 @@ class GENERAL_STATE:
     PLAYING_GAME = 4
 
 class GAME_STATE:
+    '''
+    Game STATE ENUM
+    '''
     NOT_PLAYING = 0
     QUESTION = 1
     ANSWER = 2
@@ -22,6 +50,9 @@ class GAME_STATE:
     DECISION = 4
 
 class FLAGS:
+    '''
+    Flags ENUM
+    '''
     def __init__(self):
         self.set()
     
@@ -36,12 +67,18 @@ class FLAGS:
         self.FINISH_GAME = finish_game
 
 class SIGNALS:
+    '''
+    Signals ENUM
+    '''
     def __init__(self):
         self.RELEASE_SIGNAL = None
         self.PREVIOUS_STATE = None
 
 
 class COLOR2TAG:
+    '''
+    Set of colors and its corresponding apriltag id
+    '''
     COLORTAGS = {"Human":0,"Red":1,"Green":2,"Orange":3,"Blue":4,"Yellow":6}
     COLORS = list(COLORTAGS.keys())
     COLORTAGS2 = {"Human":0,"Red":21,"Green":22,"Orange":23,"Blue":24,"Yellow":26}
@@ -50,7 +87,10 @@ class COLOR2TAG:
 
 
 class CORRECT:
-    
+    '''
+    Set of correct ans reponse
+    '''
+
     @classmethod
     def get_action(cls, i):
         return [cls.nothing,cls.phrases,cls.sound,cls.movement][i]
@@ -69,6 +109,10 @@ class CORRECT:
         return ('movement','spinning')
 
 class INCORRECT:
+    '''
+    Set of incorrect ans reponse
+    '''
+
     @classmethod
     def get_action(cls, i):
         return [cls.nothing,cls.phrases,cls.sound,cls.negative_phrases][i]
@@ -88,6 +132,9 @@ class INCORRECT:
 
 #We Have A Total Of 16 actions * 2 games. 
 class ACTIONS:
+    '''
+    Convert index to action and game tuples
+    '''
     @staticmethod
     def get_game_action(i):
         game = None
@@ -113,6 +160,9 @@ class ACTIONS:
         
 
 class SPEACH_STRING:
+    '''
+    Pre Define Speech String
+    '''
     Greetings = ["Hello! How are you? Would you like to play a game with me?", "Hi, I'm Game Boy! How are you doing?", "Hey there, could I interest you for a fun game?" ]
 
     ## Game 1
