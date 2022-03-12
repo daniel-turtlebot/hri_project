@@ -6,6 +6,16 @@ import matplotlib.pyplot as plt
 from sklearn.linear_model import LogisticRegression
 from random import randint 
 
+
+def my_mean(tup):
+    total = 0
+    for i in enumerate(list(tup)):
+        if i == 1:
+            total += i
+        else:
+            total += 6-i
+    return total/len(tup)
+
 class GameBot:
     def __init__(self):
         self.num_games = 2
@@ -44,11 +54,17 @@ class GameBot:
         self.a_t = self.sampler.sample()
         return self.a_t
     
-    def update_reward(self, reward_survey, reward_emotion,num_fails):
+    def update_reward(self, pre_survey, reward_survey, reward_emotion,num_fails):
         """
         Call From Main Controller, replace second part of run
+        pre_survey - tuple of size 3 with entries 1-5
+        reward_survey, reward_emotion - int from 1-5
         """
-        y_t = reward_survey * 0.9 + reward_emotion * 0.1
+        max_survey_val = 5
+        normalizer = my_mean(pre_survey)/max_survey_val
+
+        # between 0 and 1
+        y_t = (normalizer*reward_survey * 0.9 + reward_emotion * 0.1)/max_survey_val 
 
         ## update sampling table
         self.sampler.update_index(y_t, self.a_t)
