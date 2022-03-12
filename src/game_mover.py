@@ -37,7 +37,7 @@ class GameMover():
         self.velocity_pub = rospy.Publisher('cmd_vel_mux/input/teleop',Twist, queue_size=1)
         self.main_pub = rospy.Publisher('/game_mover',String,queue_size=1)
         # self.blobs_sub = rospy.Subscriber('/blobs', Blobs, self.blobs_cb)
-        self.bumper_sub = rospy.Subscriber('mobile_base/events/bumper', BumperEvent, self.processBump)
+        # self.bumper_sub = rospy.Subscriber('mobile_base/events/bumper', BumperEvent, self.processBump)
         self.detector = apriltag.Detector(nthreads=2,quad_decimate=1,families='tag36h11')
         self.camera_sub = rospy.Subscriber('/camera/rgb/image_raw', Image, self.april_cb)
 
@@ -77,7 +77,7 @@ class GameMover():
             print("Finding curr_tag ",curr_tag)
             if tag.tag_id == curr_tag:
                 self.goal_x = tag.center[0]
-                if self.get_tag_size(tag.corners)>1500:
+                if self.get_tag_size(tag.corners)>500 or tag.center[1]>400:
                     self.state = "Reached"
                     self.goal_x = None
                     print("Reached blob %s"%(curr_tag))

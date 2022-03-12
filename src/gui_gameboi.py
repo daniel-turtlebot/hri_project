@@ -294,7 +294,7 @@ class TestFrame(wx.Frame):
         # print("Label of pressed button = ",btn)
         value = self.name.GetValue() + "|" + self.rating1.GetValue() + "|" + self.rating2.GetValue() + "|" + self.rating3.GetValue() + "|" + self.addr1.GetValue() + "\n"
         self.saved_rating = [self.rating1.GetValue(),self.rating2.GetValue(),self.rating3.GetValue()]
-        fileh = open('pre_Survey_out.txt',"a")
+        fileh = open('/home/turtlebot/chocolate_ws/src/gameboi/survey/pre_Survey_out.txt',"a")
         fileh.write(value)
         fileh.close()
         # self.comm_sub.publish("enter")
@@ -375,9 +375,9 @@ class TestFrame1(wx.Frame):
     def OnSaveClick(self,event):
         # btn = event.GetEventObject().GetLabel() 
         # print("Label of pressed button = ",btn)
-        value = self.name.GetValue() + "|" + self.rating1.GetValue() + "|" + self.rating2.GetValue() + "|" + self.rating3.GetValue() + "|" + self.addr1.GetValue() + "\n"
+        value = self.name.GetValue() + "|" + self.rating1.GetValue() + "\n"
         self.saved_rating = self.rating1.GetValue()
-        fileh = open('post_Survey_out.txt',"a")
+        fileh = open('/home/turtlebot/chocolate_ws/src/gameboi/survey/post_Survey_out.txt',"a")
         fileh.write(value)
         fileh.close()
         # self.comm_sub.publish("enter")

@@ -9,19 +9,20 @@ from random import randint
 
 def my_mean(tup):
     total = 0
-    for i in enumerate(list(tup)):
-        if i == 1:
-            total += i
+    for i,val in enumerate(list(tup)):
+        if i == 0:
+            total += val
         else:
-            total += 6-i
+            total += 6-val
     return total/len(tup)
 
 class GameBot:
     def __init__(self):
         self.num_games = 2
-        self.num_feedback = 16
+        
         self.num_correct = 4
         self.num_incorrect = 4
+        self.num_feedback = self.num_correct * self.num_incorrect
         self.num_actions = self.num_games * self.num_feedback
 
         self.sampler = learning_utils.Sampler(self.num_actions)
@@ -42,7 +43,7 @@ class GameBot:
         game,correct,incorrect = util.ACTIONS.get_game_action1(a_t)
         x[game] = 1
         x[self.num_games + correct] = 1
-        x[x_dim] = 1 
+        x[self.num_games + self.num_correct + incorrect] = 1 
         return x
 
     
@@ -85,8 +86,8 @@ class GameBot:
         model.fit(Xs, ys)
 
         cwd = os.getcwd()
-        data_file = cwd + "/estimator.txt"
-        params_file = cwd + "/params.txt"
+        data_file = "/home/turtlebot/chocolate_ws/src/gameboi/survey/estimator.txt"
+        params_file = "/home/turtlebot/chocolate_ws/src/gameboi/survey/params.txt"
 
         np.savetxt(data_file,Xs)
         np.savetxt(data_file,ys)

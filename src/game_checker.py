@@ -63,7 +63,7 @@ class GameCheckerFSM:
         #Store Game Details here
         self.colour_to_tag = COLOR2TAG.COLORTAGS
         self.tag_to_colour = {}
-        for color in colour_to_tag:
+        for color in self.colour_to_tag:
             self.tag_to_colour[self.colour_to_tag[color]] = color
 
         #Communicating with main
@@ -134,7 +134,8 @@ class GameCheckerFSM:
         if detected_tag==None: return
         if not self.last_tag or detected_tag!=self.last_tag:
             self.last_tag = detected_tag
-            if detected_tag>6 or detected_tag<1: continue
+            if detected_tag>6 or detected_tag<1: 
+                return
             if detected_tag==self.seq[self.find_index]:
                 send_string = "Found %s"%(self.tag_to_colour[detected_tag])
                 self.find_index+=1
@@ -144,7 +145,7 @@ class GameCheckerFSM:
                 self.main_pub.publish(send_string)
                 print(send_string)
             else:
-                self.main_pub.publish("Found %s,Wrong Sequence, please restart"%(detected_tag))
+                self.main_pub.publish("Found %s,Wrong Sequence, please restart"%(self.tag_to_colour[detected_tag]))
                 self.find_index=0 #Resetting
                 print("Found %s,Wrong Sequence, please restart"%(detected_tag))
 

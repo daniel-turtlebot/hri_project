@@ -4,9 +4,9 @@ import numpy as np
 class Sampler:
     def __init__(self, K):
         self.t = None
-        self.S = np.zeros(K)
+        self.S = np.ones(K)
         #what is this?
-        self.F = np.zeros(K)
+        self.F = np.ones(K)
 
     def sample(self):
         theta_t = random.beta(self.S,self.F)

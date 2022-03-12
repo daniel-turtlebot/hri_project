@@ -133,11 +133,16 @@ class GameBoi:
             self.audio_out(act)
         elif act_type == 'movement':
             self.audio_out('You Are Correct YA')
-            self.pub_bot_vel(0,1,0.2,repeat=10)
-            self.pub_bot_vel(0,-1,0.2,repeat=10)
+
+
+            self.pub_bot_vel(0,.5,0.2,repeat=4)
+            self.pub_bot_vel(0,-0.5,0.2,repeat=4)
+            self.pub_bot_vel(0,.5,0.2,repeat=4)
+            self.pub_bot_vel(0,-0.5,0.2,repeat=4)
             pass
             
     def start_game(self):
+
         
         self.reset()
         self.pre_survey()
@@ -206,6 +211,8 @@ class GameBoi:
 
 
     def prompt_game_Q(self):
+        # self.flags.set(finish_game_q=True)
+        # return
         if self.game_mode == GAME.VISUAL:
             self.audio_out(SPEACH_STRING.Instructions1)
             self.update_gui_text(self.game_seq)
@@ -221,6 +228,8 @@ class GameBoi:
         self.flags.set(finish_game_q=True)
 
     def verify_ans(self):
+        # self.flags.set(finish_ans_verify=True)
+        # return
         self.update_gui_text("Please Display The Colors In Order")
         rospy.sleep(1)
         self.pub_checker(self.game_seq)
@@ -274,10 +283,12 @@ class GameBoi:
             print("Waiting Reward EMO")
             rospy.sleep(0.5)
 
+        print("TEST")
         self.post_reward = float(self.gui.frame.form_panel.saved_rating)
-
-        self.backend.update_reward(self.post_reward,self.reward_emotion,self.num_fails)
+        self.reward_emotion = 5 * (self.reward_emotion/100)
+        self.backend.update_reward(self.pre_reward,self.post_reward,self.reward_emotion,self.num_fails)
         self.flags.set(finish_game=True)
+        print("TEST1")
         wx.CallAfter(self.gui.frame.show_game)
         self.panel = self.gui.frame.panel
 
