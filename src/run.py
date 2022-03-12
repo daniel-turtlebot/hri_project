@@ -3,6 +3,7 @@ import numpy as np
 import learning_utils 
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LogisticRegression
+from random import randint 
 
 class GameBot:
     def __init__(self):
@@ -40,7 +41,7 @@ class GameBot:
         Call From Main Controller, replace first part of run and do_action
         """
         ## sample an action & perform the action
-        return 0
+        return randint(0, 31)
         self.a_t = self.sampler.sample()
         return self.a_t
     

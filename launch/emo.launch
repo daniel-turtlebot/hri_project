@@ -6,15 +6,21 @@
   <include file="$(find turtlebot_bringup)/launch/minimal.launch"/>
 
   <!-- <include file="$(find astra_launch)/launch/astra_pro.launch"/> -->
+<group ns="upper">
+<include file="$(find astra_launch)/launch/astra_pro.launch" >
+    <arg name="device_id" value="2bc5/0403@1/39" />
+    <arg name="devnums"  value="2" />
+</include>
+</group>
+<!-- [ INFO] [1647045030.634778957]: Device "2bc5/0403@1/45" found. -->
+<!-- [ INFO] [1647045030.635013101]: Device "2bc5/0403@1/39" found. -->
 
-  <include file="$(find turtlebot_bringup)/launch/minimal.launch"/>
+  <!-- <include file="$(find astra_launch)/launch/astra_pro.launch" >
+    <param name="device_id" value="#2" />
+  </include> -->
 
-  <include file="$(find astra_launch)/launch/astra_pro.launch" args="device_id:=#1"/>
-  <include file="$(find astra_launch)/launch/astra_pro.launch" args="device_id:=#2"/>
-  
 
-  <param name="camera/rgb/image_color/compressed/jpeg_quality" value="22"/>
-
+<param name="camera/rgb/image_color/compressed/jpeg_quality" value="22"/>
   
 
   <!-- <node name="controller" pkg="lab4" type="lab4_example.py" output="screen" /> -->

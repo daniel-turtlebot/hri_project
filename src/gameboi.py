@@ -45,8 +45,8 @@ class GameBoi:
         self.game_mover_sub = rospy.Subscriber('/game_mover',String, self.game_mover_cb, queue_size=1)
         
 
-        self.emotion_sub = rospy.Publisher('/emotion_state', String, queue_size=1)
-        self.emotion_pub = rospy.Subscriber('/emotion',String, self.emotion_cb, queue_size=1)
+        self.emotion_pub = rospy.Publisher('/emotion_state', String, queue_size=1)
+        self.emotion_sub = rospy.Subscriber('/emotion',String, self.emotion_cb, queue_size=1)
        
         self.flags = FLAGS()
         self.signals = SIGNALS()
@@ -55,6 +55,7 @@ class GameBoi:
         self.game_state = GAME_STATE.NOT_PLAYING
         self.backend = GameBot()
         self.audio = pyttsx3.init()
+        self.audio.setProperty('rate', self.audio.getProperty('rate') -50 )   
 
 
         self.reset()
@@ -76,10 +77,21 @@ class GameBoi:
         self.reward_emotion = None
         self.num_fails = 0
 
-
-    def audio_out(self,text):
+    def audio_out_helper(self,text):
         self.audio.say(text)
         self.audio.runAndWait()
+
+    def audio_out(self,text,anyc=False):
+
+        if type(text) == list:
+            text = text[randint(0,len(text)-1)]
+
+        if anyc:
+            self.t2 = threading.Thread(target=self.audio_out_helper, args=(text,))
+            self.t2.start()
+        else:
+            self.audio_out_helper(text)
+        
 
         
     def start_gui(self):
@@ -89,20 +101,22 @@ class GameBoi:
         self.gui.start()
 
     def get_game_action(self):
-        self.game_mode = GAME.VISUAL
+        
         actions = ACTIONS.get_game_action(self.backend.get_action())
         self.game_mode, self.resp_correct, self.resp_incorrect = actions
+        self.game_mode = GAME.VISUAL
         self.game_seq = self.generate_game_seq()
 
     def generate_game_seq(self):
-        colors = COLOR2TAG.COLORTAGS
-        colors_len = len(colors)
+        colors = COLOR2TAG.COLORS
+        colors_len = len(colors) - 1
         previos = ''
         seq = 'start'
-        for _ in range(randint(4,10)):
+        for _ in range(randint(3,5)):
             color = colors[randint(0,colors_len)]
             while color == 'Human' or color == previos:
                 color = colors[randint(0,colors_len)]
+            previos = color
             seq = f'{seq} {color}'
         return seq
 
@@ -120,13 +134,18 @@ class GameBoi:
             self.audio_out(act)
         elif act_type == 'movement':
             self.audio_out('You Are Correct YA')
-            self.pub_bot_vel(0,0.5,0.2,repeat=10)
+            self.pub_bot_vel(0,1,0.2,repeat=10)
+            self.pub_bot_vel(0,-1,0.2,repeat=10)
             pass
             
     def start_game(self):
+        
         self.reset()
+        self.pre_survey()
+        
         self.pub_emotion("start")
         self.update_gui_text("Let's Play The Game!")
+        self.audio_out(SPEACH_STRING.Greetings)
         self.get_game_action()
         rospy.sleep(2)
 
@@ -164,21 +183,21 @@ class GameBoi:
         self.stop()
 
     def search_for_target(self):
-        self.pub_mover("start Human")
-        while(self.game_mover_str != 'end'):
-            print("WAITING SEARCHING")
-            rospy.sleep(0.5)
+        # self.pub_mover("start Human")
+        # while(self.game_mover_str != 'end'):
+        #     print("WAITING SEARCHING")
+        #     rospy.sleep(0.5)
         self.flags.set(human_found=True)
         
 
     def prompt_Q(self):
         self.update_gui_text("Do You Want To Play A Game With Me?")
         want_to_play = False
-        for _ in range(10):
+        for _ in range(50):
             if self.panel.get_enter_flag():
                 want_to_play = True
                 break
-            rospy.sleep(0.5)
+            rospy.sleep(0.2)
 
         if want_to_play:
             self.start_game()
@@ -189,9 +208,11 @@ class GameBoi:
 
     def prompt_game_Q(self):
         if self.game_mode == GAME.VISUAL:
+            self.audio_out(SPEACH_STRING.Instructions1)
             self.update_gui_text(self.game_seq)
             rospy.sleep(3)
         else:
+            self.audio_out(SPEACH_STRING.Instructions2)
             self.update_gui_text("Please Follow The Robot And Remember The Color")
             self.pub_mover(self.game_seq)
             while(self.game_mover_str != 'end'):
@@ -208,7 +229,7 @@ class GameBoi:
             print("FIND STRING")
             rospy.sleep(0.5)
         ps = ''
-        while(self.game_check_str != 'end'):
+        while(not 'Passed' in self.game_check_str ):
             if ps != self.game_check_str:
                 self.update_gui_text(self.game_check_str)
                 ps = self.game_check_str
@@ -220,18 +241,46 @@ class GameBoi:
 
             rospy.sleep(1)
 
+        self.update_gui_text(self.game_check_str)
+        rospy.sleep(1)
+
         self.game_check_str = None
         self.flags.set(finish_ans_verify=True)
 
+    def pre_survey(self):
+        wx.CallAfter(self.gui.frame.show_form)
+
+        while self.gui.frame.form_panel is None:
+            rospy.sleep(0.1)
+        
+        while not self.gui.frame.form_panel.button_clicked:
+            rospy.sleep(0.5)
+        self.test = float(self.gui.frame.form_panel.saved_rating)
+        wx.CallAfter(self.gui.frame.show_game)
+        
+        self.panel = self.gui.frame.panel
+
     def update_backend(self):
         #TODO
+
+        wx.CallAfter(self.gui.frame.show_form)
         self.pub_emotion("end")
+
+        while self.gui.frame.form_panel is None:
+            rospy.sleep(0.1)
+        while not self.gui.frame.form_panel.button_clicked:
+            rospy.sleep(0.5)
+
         while(self.reward_emotion is None):
             print("Waiting Reward EMO")
-            rospy.sleep(1)
+            rospy.sleep(0.5)
+
+        self.reward_survey = float(self.gui.frame.form_panel.saved_rating)
 
         self.backend.update_reward(self.reward_survey,self.reward_emotion,self.num_fails)
         self.flags.set(finish_game=True)
+        wx.CallAfter(self.gui.frame.show_game)
+        self.panel = self.gui.frame.panel
 
     def stop(self):
         self.pub_bot_vel(0, 0, 0, repeat=1)

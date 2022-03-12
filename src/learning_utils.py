@@ -5,9 +5,8 @@ class Sampler:
     def __init__(self, K):
         self.t = None
         self.S = np.zeros(K)
-        #what is this??
-        F = 10
-        self.F = np.zeros(F)
+        #what is this?
+        self.F = np.zeros(K)
 
     def sample(self):
         theta_t = random.beta(self.S,self.F)

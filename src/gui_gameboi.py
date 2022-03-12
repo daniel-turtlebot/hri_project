@@ -16,10 +16,6 @@ class MyPanel(wx.Panel):
     def __init__(self, parent):
         """Constructor"""
         wx.Panel.__init__(self, parent)
-        self.Bind(wx.EVT_KEY_DOWN, self.onKey)
-        self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
-        self.Bind(wx.EVT_SIZE,self.OnSize)
-        self.Bind(wx.EVT_IDLE,self.OnIdle)
 
         parent.ShowFullScreen(True)
         img_path = '/home/turtlebot/chocolate_ws/src/gameboi/image'
@@ -47,6 +43,10 @@ class MyPanel(wx.Panel):
 
         #---------GameFlags------------------
         self.GAMEFLAGS = GameFlags()
+        self.Bind(wx.EVT_KEY_DOWN, self.onKey)
+        self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
+        self.Bind(wx.EVT_SIZE,self.OnSize)
+        self.Bind(wx.EVT_IDLE,self.OnIdle)
         
     
     #----------------------------------------------------------------------
@@ -173,22 +173,26 @@ class Puzzle_Bot_GUI(wx.Frame):
     def __init__(self):
         """Constructor"""
         wx.Frame.__init__(self, None, title="Test FullScreen")
+        self.form_panel = None
         self.panel = MyPanel(self)
+        self.previous = None
         self.Show()
 
     def show_form(self): #Call this to display the survey form
-        self.panel.Close() #Destroy the other panel
+        # self.previous = self.panel
+        # self.panel.Close() #Destroy the other panel
         self.form_panel = TestFrame(self)
         self.form_panel.Show()
         return
     
     def show_game(self): #Call this to restart the game
         self.form_panel.Destroy()
+        self.form_panel = None
         # wx.Frame.__init__(self, None, title="Test FullScreen")
-        self.panel = MyPanel(self)
+        # self.panel = MyPanel(self)
         # self.Bind(wx.EVT_KEY_DOWN, self.on_press)
         # self.ShowFullScreen(True)
-        self.Show()
+        # self.panel.Show()
     
     def on_press(self, event):
         value = self.text_ctrl.GetValue()
@@ -206,6 +210,10 @@ class TestFrame(wx.Frame):
         # First create the controls
         topLbl = wx.StaticText(panel, -1, "Survey Questions")
         topLbl.SetFont(wx.Font(18, wx.SWISS, wx.NORMAL, wx.BOLD))
+
+        # self.comm_sub = rospy.Publisher('/survey', String, queue_size=1)
+        self.button_clicked = False
+        self.saved_rating = None
 
         nameLbl = wx.StaticText(panel, -1, "Name:")
         self.name = wx.TextCtrl(panel, -1, "")
@@ -256,13 +264,19 @@ class TestFrame(wx.Frame):
         # btn = event.GetEventObject().GetLabel() 
         # print("Label of pressed button = ",btn)
         value = self.name.GetValue() + "|" + self.rating.GetValue() + "|" + self.addr1.GetValue() + "\n"
+        self.saved_rating = self.rating.GetValue()
         fileh = open('Survey_out.txt',"a")
         fileh.write(value)
         fileh.close()
-        self.GetParent().show_game()
+        # self.comm_sub.publish("enter")
+        self.button_clicked = True
+
+        # self.GetParent().show_game()
     
     def OnCancelClick(self,event):
-        self.GetParent().show_game()
+        self.comm_sub.publish("enter")
+        self.button_clicked = True
+        # self.GetParent().show_game()
     
     def onKey(self, event):
         key_code = event.GetKeyCode()

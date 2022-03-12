@@ -77,7 +77,7 @@ class GameMover():
             print("Finding curr_tag ",curr_tag)
             if tag.tag_id == curr_tag:
                 self.goal_x = tag.center[0]
-                if self.get_tag_size(tag.corners)>3000:
+                if self.get_tag_size(tag.corners)>1500:
                     self.state = "Reached"
                     self.goal_x = None
                     print("Reached blob %s"%(curr_tag))
@@ -131,7 +131,7 @@ class GameMover():
         return
 
     def change_state(self,comm_str):
-        self.colour_to_tag = COLOR2TAG.COLORTAGS
+        self.colour_to_tag = COLOR2TAG.COLORTAGS2
         data = comm_str.data
         if data=='end':
             self.started = False
