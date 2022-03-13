@@ -20,8 +20,8 @@ class GameBot:
     def __init__(self):
         self.num_games = 2
         
-        self.num_correct = 4
-        self.num_incorrect = 4
+        self.num_correct = 2
+        self.num_incorrect = 2
         self.num_feedback = self.num_correct * self.num_incorrect
         self.num_actions = self.num_games * self.num_feedback
 

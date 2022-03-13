@@ -43,8 +43,8 @@ from geometry_msgs.msg import Twist
 *   Make sure every python files permission is set properly
 """
 
-SKIPGAME = True
-DEBUG = True
+SKIPGAME = False
+DEBUG = False
 
 def dprint(text):
     if DEBUG:
@@ -107,6 +107,8 @@ class GameBoi:
         self.t1.start()
         while self.panel is None:
             rospy.sleep(0.2)
+
+        self.update_gui_text("Press Enter To Start The Game")
 
     def reset(self):
         """
@@ -184,26 +186,20 @@ class GameBoi:
         """
         Apply action to robot based on action given
         """
-        action = action()
+        actions = action()
         if action is None:
             return
-        act_type, act = action
-        if act_type == 'sound':
-            if act == 'positive':
-                self.audio_out('YA YA YA YA YA')
-            else:
-                self.audio_out('BEE BEE BEE BEE BEE')
-        elif act_type == 'phrases':
-            self.audio_out(act)
-        elif act_type == 'movement':
-            self.audio_out('You Are Correct YA',anyc=True)
 
-
-            self.pub_bot_vel(0,.5,0.2,repeat=4)
-            self.pub_bot_vel(0,-0.5,0.2,repeat=4)
-            self.pub_bot_vel(0,.5,0.2,repeat=4)
-            self.pub_bot_vel(0,-0.5,0.2,repeat=4)
-            pass
+        for act in actions:
+            act_type, act = action
+            if act_type == 'phrases':
+                self.audio_out(act)
+            elif act_type == 'movement':
+                self.pub_bot_vel(0,.5,0.2,repeat=4)
+                self.pub_bot_vel(0,-0.5,0.2,repeat=4)
+                self.pub_bot_vel(0,.5,0.2,repeat=4)
+                self.pub_bot_vel(0,-0.5,0.2,repeat=4)
+                pass
             
     def start_game(self):
         """
@@ -215,7 +211,7 @@ class GameBoi:
         
         self.pub_emotion("start")
         self.update_gui_text("Let's Play The Game!")
-        self.audio_out(SPEACH_STRING.Greetings)
+        self.audio_out(SPEACH_STRING.Post_Greetings)
         self.get_game_action()
         rospy.sleep(2)
 
@@ -274,6 +270,7 @@ class GameBoi:
         """
         if self.panel.get_enter_flag():
             self.flags.set(start=True)
+        
         self.stop()
 
     def search_for_target(self):
@@ -291,6 +288,7 @@ class GameBoi:
         """
         Ask If Human Want To Play A Game
         """
+        self.audio_out(SPEACH_STRING.Greetings,anyc=True)
         self.update_gui_text("Do You Want To Play A Game With Me?")
         want_to_play = False
         for _ in range(50):
@@ -313,7 +311,7 @@ class GameBoi:
         # self.flags.set(finish_game_q=True)
         # return
         if SKIPGAME:
-            self.flags.set(finish_ans_verify=True)
+            self.flags.set(finish_game_q=True)
             return
         if self.game_mode == GAME.VISUAL:
             self.update_gui_text(self.game_seq)
@@ -421,7 +419,7 @@ class GameBoi:
         dprint("TEST1")
         wx.CallAfter(self.gui.frame.show_game)
         self.panel = self.gui.frame.panel
-        self.update_gui_text("Press Enter To Restart The Game")
+        self.update_gui_text("Press Enter To Start The Game")
 
     def stop(self):
         """
@@ -473,8 +471,8 @@ class GameBoi:
                     self.signals.PREVIOUS_STATE = None
             elif self.game_state == GAME_STATE.DECISION:
                 if self.flags.FINISH_GAME:
-                    self.state = GENERAL_STATE.SEARCHING
-                    self.game_state = GENERAL_STATE.INITIAL
+                    self.state = GENERAL_STATE.INITIAL
+                    self.game_state = GAME_STATE.NOT_PLAYING
 
     def controller(self,event):
         """

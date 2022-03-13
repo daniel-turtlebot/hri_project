@@ -93,20 +93,14 @@ class CORRECT:
 
     @classmethod
     def get_action(cls, i):
-        return [cls.nothing,cls.phrases,cls.sound,cls.movement][i]
+        return [cls.nothing,cls.action][i]
     @staticmethod
     def nothing():
         return None
     @staticmethod
-    def phrases():
+    def action():
         phr = 'nice work' if randint(0, 1) == 0 else 'way to go'
-        return ('phrases',phr) 
-    @staticmethod
-    def sound():
-        return ('sound','positive')
-    @staticmethod
-    def movement():
-        return ('movement','spinning')
+        return [('movement','spinning'),('phrases',phr)]
 
 class INCORRECT:
     '''
@@ -115,22 +109,16 @@ class INCORRECT:
 
     @classmethod
     def get_action(cls, i):
-        return [cls.nothing,cls.phrases,cls.sound,cls.negative_phrases][i]
+        return [cls.nothing,cls.action][i]
     @staticmethod
     def nothing():
         return None
     @staticmethod
-    def phrases():
-        phr = 'you can do it' if randint(0, 1) == 0 else 'you got this'
-        return ('phrases',phr)
-    @staticmethod
-    def sound():
-        return ('sound','negative')
-    def negative_phrases():
+    def action():
         phr = 'better luck next time' if randint(0, 1) == 0 else 'not very good'
-        return ('phrases',phr)
+        return [('phrases',phr + ' BEE BEE BEE BEE BEE')]
 
-#We Have A Total Of 16 actions * 2 games. 
+#We Have A Total Of 4 actions * 2 games. 
 class ACTIONS:
     '''
     Convert index to action and game tuples
@@ -141,10 +129,10 @@ class ACTIONS:
         correct = None
         incorrect = None
         
-        game = GAME.get_game(i // 16)
-        i = i % 16
-        correct = CORRECT.get_action(i//4)
-        incorrect = INCORRECT.get_action(i%4)
+        game = GAME.get_game(i // 4)
+        i = i % 4
+        correct = CORRECT.get_action(i//2)
+        incorrect = INCORRECT.get_action(i%2)
         return (game,correct,incorrect)
 
     def get_game_action1(i):
@@ -152,18 +140,22 @@ class ACTIONS:
         correct = None
         incorrect = None
         
-        game = i // 16
-        i = i % 16
-        correct = i//4
-        incorrect = i%4
+        game = i // 4
+        i = i % 4
+        correct = i//2
+        incorrect = i%2
         return (game,correct,incorrect)
+
+
+
         
 
 class SPEACH_STRING:
     '''
     Pre Define Speech String
     '''
-    Greetings = ["Hello! How are you? Would you like to play a game with me?", "Hi, I'm Game Boy! How are you doing?", "Hey there, could I interest you for a fun game?" ]
+    Greetings = ["Hi, I'm Game Boy! How are you doing?","Hello! How are you? Would you like to play a game with me?", "Hey there, could I interest you for a fun game?" ]
+    Post_Greetings = ["Ya, Lets Play The Game"]
 
     ## Game 1
     Instructions1 = ["I will show you a sequence of colors and if you can show me those colors in the right order you win."]
