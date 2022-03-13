@@ -40,6 +40,7 @@ class MyPanel(wx.Panel):
         self.text = None
         self.inst = None
         self.size_changed = None
+        self.bold_text = False
 
         #---------GameFlags------------------
         self.GAMEFLAGS = GameFlags()
@@ -95,8 +96,14 @@ class MyPanel(wx.Panel):
             pos = (10*cliWidth//20 , 4*cliHeight//20)
             if self.text: self.text.Destroy()
             self.text = wx.StaticText(self, label=self.text_str, pos=pos)
-            font_size = 15
+            font_size = 20
             font1 = wx.Font(font_size, wx.MODERN, wx.NORMAL, wx.NORMAL, False)
+
+            if self.bold_text:
+                font_size = 30
+                font1 = wx.Font(font_size, wx.MODERN, wx.NORMAL, wx.NORMAL, False)
+                
+            font1 = font1.Bold()
             self.text.SetForegroundColour((0,0,0))
             self.text.SetBackgroundColour((225,225,225))
             self.text.SetFont(font1)
@@ -110,11 +117,12 @@ class MyPanel(wx.Panel):
         self.Instruction = exc_inst
         self.OnEraseBackground(None)
     
-    def update_text(self,prompt):
+    def update_text(self,prompt,make_bold = False):
         #Receives String
         # print("Updating Text")
         self.text_str = prompt
         self.new_test = True
+        self.bold_text = make_bold
         self.update_display(exc_inst=True)
 
     #-------------Used for communicating flags with main------------------

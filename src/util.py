@@ -79,9 +79,9 @@ class COLOR2TAG:
     '''
     Set of colors and its corresponding apriltag id
     '''
-    COLORTAGS = {"Human":0,"Red":1,"Green":2,"Orange":3,"Blue":4,"Yellow":6}
+    COLORTAGS = {"Human":0,"Red":1,"Green":2,"Orange":3}#,"Blue":4,"Yellow":6}
     COLORS = list(COLORTAGS.keys())
-    COLORTAGS2 = {"Human":0,"Red":21,"Green":22,"Orange":23,"Blue":24,"Yellow":26}
+    COLORTAGS2 = {"Human":0,"Red":21,"Green":22,"Orange":23}#,"Blue":24,"Yellow":26}
 
 
 

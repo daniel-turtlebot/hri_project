@@ -45,6 +45,7 @@ from geometry_msgs.msg import Twist
 
 SKIPGAME = False
 DEBUG = False
+NUM_SEQ = 3
 
 def dprint(text):
     if DEBUG:
@@ -174,7 +175,7 @@ class GameBoi:
         colors_len = len(colors) - 1
         previos = ''
         seq = 'start'
-        for _ in range(randint(3,5)):
+        for _ in range(randint(3,NUM_SEQ)):
             color = colors[randint(0,colors_len)]
             while color == 'Human' or color == previos:
                 color = colors[randint(0,colors_len)]
@@ -187,11 +188,11 @@ class GameBoi:
         Apply action to robot based on action given
         """
         actions = action()
-        if action is None:
+        if actions is None:
             return
 
         for act in actions:
-            act_type, act = action
+            act_type, act = act
             if act_type == 'phrases':
                 self.audio_out(act)
             elif act_type == 'movement':
@@ -215,11 +216,11 @@ class GameBoi:
         self.get_game_action()
         rospy.sleep(2)
 
-    def update_gui_text(self,text):
+    def update_gui_text(self,text,make_bold = False):
         """
         Send the text to GUI
         """
-        wx.CallAfter(self.panel.update_text, text)
+        wx.CallAfter(self.panel.update_text, text, make_bold=make_bold)
 
     def game_mover_cb(self,s):
         """
@@ -315,11 +316,11 @@ class GameBoi:
             return
         if self.game_mode == GAME.VISUAL:
             self.audio_out(SPEACH_STRING.Instructions1)
-            self.update_gui_text(self.game_seq.split(' ', 1)[1])
+            self.update_gui_text(self.game_seq.split(' ', 1)[1].replace(" ", "\n"),make_bold=True)
             rospy.sleep(6)
         else:
             self.audio_out(SPEACH_STRING.Instructions2,anyc=True)
-            self.update_gui_text("Please Follow The Robot And Remember The Color")
+            self.update_gui_text("Please Follow The Robot And\nRemember The Color")
             self.pub_mover(self.game_seq)
             while(self.game_mover_str != 'end'):
                 dprint("WAITING Q")

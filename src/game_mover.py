@@ -77,7 +77,7 @@ class GameMover():
             print("Finding curr_tag ",curr_tag)
             if tag.tag_id == curr_tag:
                 self.goal_x = tag.center[0]
-                if self.get_tag_size(tag.corners)>500 or tag.center[1]>400:
+                if self.get_tag_size(tag.corners)>500 or tag.center[1]<100:
                     self.state = "Reached"
                     self.goal_x = None
                     print("Reached blob %s"%(curr_tag))
