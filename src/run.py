@@ -24,7 +24,8 @@ class GameBot:
         self.num_incorrect = 2
         self.num_feedback = self.num_correct * self.num_incorrect
         self.num_actions = self.num_games * self.num_feedback
-
+        
+        self.dir_path = "/home/turtlebot/chocolate_ws/src/gameboi/survey/"
         self.sampler = learning_utils.Sampler(self.num_actions)
 
         self.testing = True
@@ -74,6 +75,9 @@ class GameBot:
         self.X.append(x_t)
         self.y.append(y_t)
         self.a_t = None
+
+        np.savetxt(self.dir_path + "S.txt",self.sampler.S) # save S
+        np.savetxt(self.dir_path + "F.txt",self.sampler.F) # save F
 
     def do_action(self):
         pass

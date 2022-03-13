@@ -1,12 +1,18 @@
 from numpy import random 
 import numpy as np
+from os.path import exists
 
 class Sampler:
     def __init__(self, K):
         self.t = None
-        self.S = np.ones(K)
-        #what is this?
-        self.F = np.ones(K)
+        dir_path = "/home/turtlebot/chocolate_ws/src/gameboi/survey/"
+        if exists(dir_path + "S.txt"): # if S history exists
+            self.S = np.loadtxt(dir_path + "S.txt")
+        if exists(dir_path + "F.txt"): # if F history exists
+            self.F = np.loadtxt(dir_path + "F.txt")
+        else: # if no history
+            self.S = np.ones(K)
+            self.F = np.ones(K)
 
     def sample(self):
         theta_t = random.beta(self.S,self.F)
