@@ -79,6 +79,12 @@ class GameBot:
         np.savetxt(self.dir_path + "S.txt",self.sampler.S) # save S
         np.savetxt(self.dir_path + "F.txt",self.sampler.F) # save F
 
+        Xfile = "X.txt"
+        yfile = "y.txt"
+
+        np.savetxt(self.dir_path + Xfile,self.X)
+        np.savetxt(self.dir_path + yfile,self.y)
+
     def do_action(self):
         pass
 
@@ -89,9 +95,8 @@ class GameBot:
         model = LogisticRegression(solver='liblinear', random_state=0)
         model.fit(Xs, ys)
 
-        cwd = os.getcwd()
-        data_file = "/home/turtlebot/chocolate_ws/src/gameboi/survey/estimator.txt"
         params_file = "/home/turtlebot/chocolate_ws/src/gameboi/survey/params.txt"
+        data_file = "/home/turtlebot/chocolate_ws/src/gameboi/survey/estimator.txt"
 
         np.savetxt(data_file,Xs)
         np.savetxt(data_file,ys)
