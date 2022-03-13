@@ -314,12 +314,12 @@ class GameBoi:
             self.flags.set(finish_game_q=True)
             return
         if self.game_mode == GAME.VISUAL:
-            self.update_gui_text(self.game_seq)
-            self.audio_out(SPEACH_STRING.Instructions1,anyc=True)
+            self.audio_out(SPEACH_STRING.Instructions1)
+            self.update_gui_text(self.game_seq.split(' ', 1)[1])
             rospy.sleep(6)
         else:
+            self.audio_out(SPEACH_STRING.Instructions2,anyc=True)
             self.update_gui_text("Please Follow The Robot And Remember The Color")
-            self.audio_out(SPEACH_STRING.Instructions2)
             self.pub_mover(self.game_seq)
             while(self.game_mover_str != 'end'):
                 dprint("WAITING Q")
