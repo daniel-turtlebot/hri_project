@@ -54,6 +54,11 @@ class GameBot:
         """
         ## sample an action & perform the action
         self.a_t = self.sampler.sample()
+        if self.a_t < 4:
+            self.a_t += 4
+
+        # self.a_t = 4
+
         return self.a_t
     
     def update_reward(self, pre_survey, reward_survey, reward_emotion,num_fails):

@@ -1,1 +1,13 @@
-time 1647129117.7648082, emo 0.0, pre (1.0, 3.0, 4.0), post 6.0 , fails 0time 1647130033.5495071, emo 0.0, pre (2.0, 2.0, 2.0), post 6.0 , fails 0time 1647134309.7706914, emo 0.0, pre (3.0, 3.0, 3.0), post 5.0 , fails 2time 1647134395.573792, emo 0.0, pre (4.0, 4.0, 4.0), post 1.0 , fails 2time 1647134515.2547987, emo 0.0, pre (1, 1, 1), post 5.0 , fails 0time 1647135151.8301806, emo 0.0, pre (4.0, 5.0, 3.0), post 5.0 , fails 2time 1647135237.799193, emo 0.0, pre (1.0, 1.0, 1.0), post 5.0 , fails 2
+time 1647208670.5006776, emo 0.0, pre (3.0, 1.0, 1.0), post 2.0 , fails 0, posts ('2', '3', '1')
+time 1647209069.61363, emo 0.0, pre (1, 1, 1), post 2.0 , fails 3, posts ('2', '5', '0')
+time 1647209323.9785051, emo 0.0, pre (4.0, 4.0, 2.0), post 5.0 , fails 4, posts ('5', '5', '3')
+time 1647210034.6996896, emo 0.0, pre (4.0, 1.0, 1.0), post 5.0 , fails 1, posts ('5', '3', '2')
+time 1647210359.374899, emo 0.0, pre (3.0, 1.0, 1.0), post 3.0 , fails 1, posts ('3', '3', '2')
+time 1647210582.9459069, emo 0.0, pre (3.0, 1.0, 1.0), post 4.0 , fails 0, posts ('4', '4', '4')
+time 1647211011.3401425, emo 0.0, pre (5.0, 3.0, 1.0), post 2.0 , fails 8, posts ('2', '4', '2')
+time 1647211203.7068744, emo 0.0, pre (1.0, 2.0, 1.0), post 4.0 , fails 1, posts ('4', '4', '4')
+time 1647211302.572816, emo 0.0, pre (3.0, 2.0, 1.0), post 5.0 , fails 0, posts ('5', '5', '5')
+time 1647211704.366481, emo 0.0, pre (3.0, 1.0, 2.0), post 5.0 , fails 0, posts ('5', '4', '3')
+time 1647212566.0037758, emo 0.0, pre (3.0, 2.0, 2.0), post 4.0 , fails 1, posts ('4', '3', '2'), type 2
+time 1647212905.50229, emo 0.0, pre (4.0, 2.0, 1.0), post 5.0 , fails 2, posts ('5', '4', '3'), type 2
+time 1647213607.486492, emo 0.0, pre (3.0, 1.0, 1.0), post 5.0 , fails 1, posts ('5', '5', '4'), type 4

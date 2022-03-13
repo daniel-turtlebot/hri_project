@@ -2,16 +2,12 @@ Ricky|3|3|3|
 PARTH|3|1|1|
 Siddhant|Yes|Bo|No|
 Siddhant|Yes|No|No|
-pthaa|4|4|2|
-div|4|1|1|
+pthaa|4|4|2|   static no yes
+div|4|1|1|      movement no no 
 parth|3|1|1|
 parth|3|1|1|
 yujin|5|3|1|
 bosung|1|2|1|
 bosung|3|2|1|
-kyle |3|1|2|I have quite a bit of robot experience 
+kyle |3|1|2|   movement no no
 
-
-Raghav|3|2|2|
-pai|4|2|1|
-Harsh|3|1|1|

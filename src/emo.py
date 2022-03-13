@@ -50,7 +50,7 @@ class Emotion:
         self.base_url = 'http://ec2-18-237-190-52.us-west-2.compute.amazonaws.com:5000/'
         self.session = requests.Session()
         self.headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-        self.started = False
+        self.started = True
     
     def emo_st_cb(self, s):
         """

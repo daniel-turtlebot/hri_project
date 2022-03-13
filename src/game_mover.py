@@ -77,7 +77,7 @@ class GameMover():
             print("Finding curr_tag ",curr_tag)
             if tag.tag_id == curr_tag:
                 self.goal_x = tag.center[0]
-                if self.get_tag_size(tag.corners)>500 or tag.center[1]<100:
+                if self.get_tag_size(tag.corners)>400 or tag.center[1]<100:
                     self.state = "Reached"
                     self.goal_x = None
                     print("Reached blob %s"%(curr_tag))
@@ -155,8 +155,9 @@ class GameMover():
                 self.velocity_pub.publish(self.search_vel)
             elif self.state=="Moving":
                 print("Moving")
-                self.move_vel.angular.z = (self.goal_x-330)*self.mov_scale*0.5
-                self.velocity_pub.publish(self.move_vel)
+                if self.goal_x:
+                    self.move_vel.angular.z = (self.goal_x-330)*self.mov_scale*0.5
+                    self.velocity_pub.publish(self.move_vel)
             elif self.state=="Reached":
                 # print("Reached colour %s"%(self.index))
                 rospy.sleep(2)

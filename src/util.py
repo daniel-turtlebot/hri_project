@@ -79,9 +79,9 @@ class COLOR2TAG:
     '''
     Set of colors and its corresponding apriltag id
     '''
-    COLORTAGS = {"Human":0,"Red":1,"Green":2,"Orange":3}#,"Blue":4,"Yellow":6}
+    COLORTAGS = {"Human":0,"Red":1,"Green":2,"Orange":3,"Blue":4}#,"Yellow":6}
     COLORS = list(COLORTAGS.keys())
-    COLORTAGS2 = {"Human":0,"Red":21,"Green":22,"Orange":23}#,"Blue":24,"Yellow":26}
+    COLORTAGS2 = {"Human":0,"Red":21,"Green":22,"Orange":23,"Blue":24}#,"Yellow":26}
 
 
 
@@ -165,7 +165,7 @@ class SPEACH_STRING:
     Final_Responses = ["Wonderful! You have passed the game.", "I wish I had a prize for you. How about a high five?", "Amazing! You won."]
 
 ## Game 2
-    Instructions2 = ["I'll show you around while I look for those colors."]
+    Instructions2 = ["I'll show you around while I look for those colors. Note, it is important to rember the order of the colors"]
     Start2 = ["Come, let's do this together.", "Let's go finish the sequence.", "It's fine if you want to wait. I won't be gone too long."]
 
     First_Color2 = ["We already found our first color."]

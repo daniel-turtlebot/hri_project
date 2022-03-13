@@ -126,7 +126,8 @@ class GameCheckerFSM:
         detected_tag = None
         max_size = -1e6
         for tag in result:
-            # print(tag.tag_id)
+
+            print(tag.tag_id)
             size_tag = self.get_tag_size(tag.corners)
             if size_tag>max_size:
                 detected_tag = tag.tag_id
@@ -147,6 +148,7 @@ class GameCheckerFSM:
             else:
                 self.main_pub.publish("Found %s,Wrong Sequence, please restart"%(self.tag_to_colour[detected_tag]))
                 self.find_index=0 #Resetting
+                self.last_tag = None
                 print("Found %s,Wrong Sequence, please restart"%(detected_tag))
 
 
@@ -232,5 +234,5 @@ if __name__ == '__main__':
     print("Running on Python ",sys.version)
     signal.signal(signal.SIGINT, sigint_handler) #Used to stop the bot safely using Ctrl+C
     game_checker = GameCheckerFSM()
-    # game_checker.set_seq(['Pink','Yellow','Pink'])
+    game_checker.set_seq(['Red'])
     game_checker.run()

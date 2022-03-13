@@ -220,6 +220,8 @@ class TestFrame(wx.Frame):
     def __init__(self,parent):
         wx.Frame.__init__(self, parent, -1, "Please take a few seconds to rate your experience")
         panel = wx.Panel(self)
+        self.button_clicked = False
+        self.saved_rating = None
         self.Bind(wx.EVT_KEY_DOWN, self.onKey)
 
         # First create the controls
@@ -227,16 +229,15 @@ class TestFrame(wx.Frame):
         topLbl.SetFont(wx.Font(23, wx.SWISS, wx.NORMAL, wx.BOLD))
 
         # self.comm_sub = rospy.Publisher('/survey', String, queue_size=1)
-        self.button_clicked = False
-        self.saved_rating = None
+        
 
-        nameLbl = wx.StaticText(panel, -1, "Name:")
+        nameLbl = wx.StaticText(panel, -1, "Name: Optional")
         self.name = wx.TextCtrl(panel, -1, "")
 
         instLbl = wx.StaticText(panel, -1, "On a scale of 1-5 how much do you agree with the following:")
         instLbl.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD))
 
-        ratingLbl1 = wx.StaticText(panel, -1, "I feel conforted being with robots that have emotion")
+        ratingLbl1 = wx.StaticText(panel, -1, "I feel comforted being with robots that have emotion")
         self.rating1 = wx.TextCtrl(panel, -1, "")
 
         ratingLbl2 = wx.StaticText(panel, -1, "I would feel very nervous just standing in front of a robot")
@@ -245,7 +246,7 @@ class TestFrame(wx.Frame):
         ratingLbl3 = wx.StaticText(panel, -1, "I would feel paranoid talking with a robot")
         self.rating3 = wx.TextCtrl(panel, -1, "")
 
-        addrLbl = wx.StaticText(panel, -1, "Comments:")
+        addrLbl = wx.StaticText(panel, -1, "Comments: Optional")
         self.addr1 = wx.TextCtrl(panel, -1, "")
 
         self.saveBtn = wx.Button(panel, -1, "Save")
@@ -325,6 +326,8 @@ class TestFrame1(wx.Frame):
     def __init__(self,parent):
         wx.Frame.__init__(self, parent, -1, "Please take a few seconds to rate your experience")
         panel = wx.Panel(self)
+        self.button_clicked = False
+        self.saved_rating = None
         self.Bind(wx.EVT_KEY_DOWN, self.onKey)
 
         # First create the controls
@@ -332,17 +335,24 @@ class TestFrame1(wx.Frame):
         topLbl.SetFont(wx.Font(23, wx.SWISS, wx.NORMAL, wx.BOLD))
 
         # self.comm_sub = rospy.Publisher('/survey', String, queue_size=1)
-        self.button_clicked = False
-        self.saved_rating = None
+        
 
-        nameLbl = wx.StaticText(panel, -1, "Name:")
+        nameLbl = wx.StaticText(panel, -1, "Name: Optional")
         self.name = wx.TextCtrl(panel, -1, "")
 
         instLbl = wx.StaticText(panel, -1, "On a scale of 1-5 how much do you agree with the following:")
         instLbl.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD))
 
-        ratingLbl1 = wx.StaticText(panel, -1, "Rate Your Experience")
+        
+
+        ratingLbl1 = wx.StaticText(panel, -1, "Rate Your Experience With Robot")
         self.rating1 = wx.TextCtrl(panel, -1, "")
+
+        ratingLbl2 = wx.StaticText(panel, -1, "Do you think the game is interesting?")
+        self.rating2 = wx.TextCtrl(panel, -1, "")
+
+        ratingLbl3 = wx.StaticText(panel, -1, "How human do you think the robot is?")
+        self.rating3 = wx.TextCtrl(panel, -1, "")
 
         self.saveBtn = wx.Button(panel, -1, "Save")
         self.saveBtn.Bind(wx.EVT_BUTTON,self.OnSaveClick)
@@ -369,6 +379,12 @@ class TestFrame1(wx.Frame):
         mainSizer.Add(ratingLbl1, 0, wx.ALL, 5)
         mainSizer.Add(self.rating1, 0, wx.ALL,5)
 
+        mainSizer.Add(ratingLbl2, 0, wx.ALL, 5)
+        mainSizer.Add(self.rating2, 0, wx.ALL,5)
+
+        mainSizer.Add(ratingLbl3, 0, wx.ALL, 5)
+        mainSizer.Add(self.rating3, 0, wx.ALL,5)
+
 
         btnSizer = wx.BoxSizer(wx.HORIZONTAL)
         btnSizer.Add((20,20), 1)
@@ -384,7 +400,9 @@ class TestFrame1(wx.Frame):
         # btn = event.GetEventObject().GetLabel() 
         # print("Label of pressed button = ",btn)
         value = self.name.GetValue() + "|" + self.rating1.GetValue() + "\n"
+        self.saved_rating1 = (self.rating1.GetValue(),self.rating2.GetValue(),self.rating3.GetValue())
         self.saved_rating = self.rating1.GetValue()
+        
         fileh = open('/home/turtlebot/chocolate_ws/src/gameboi/survey/post_Survey_out.txt',"a")
         fileh.write(value)
         fileh.close()

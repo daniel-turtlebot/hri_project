@@ -4,7 +4,7 @@ import gui_gameboi as guigb
 from util import *
 from run import GameBot
 
-from random import randint 
+from random import randint ,shuffle
 import numpy as np
 import threading
 import signal
@@ -45,7 +45,7 @@ from geometry_msgs.msg import Twist
 
 SKIPGAME = False
 DEBUG = False
-NUM_SEQ = 3
+NUM_SEQ = 4
 
 def dprint(text):
     if DEBUG:
@@ -162,8 +162,10 @@ class GameBoi:
         """
         get the game and actions to do from our backend decision 
         """
-        actions = ACTIONS.get_game_action(self.backend.get_action())
+        self.bg_action = self.backend.get_action()
+        actions = ACTIONS.get_game_action(self.bg_action)
         self.game_mode, self.resp_correct, self.resp_incorrect = actions
+        # self.game_mode = 0
         self.game_seq = self.generate_game_seq()
 
     def generate_game_seq(self):
@@ -328,6 +330,25 @@ class GameBoi:
 
         self.flags.set(finish_game_q=True)
 
+    def process_seq(self,seq,process=None):
+        seq = seq.split(' ', 1)[1].split()
+        n = len(seq)
+
+        seq_index = [i for i in range(n)]
+        if process == 'shuffle':
+            shuffle(seq_index)
+        elif process == 'reverse':
+            seq_index.reverse()
+        new_seq = [seq[i] for i in seq_index]
+        seq_index = [str(i+1) for i in seq_index]
+
+        screen_str = ' '.join(seq_index)
+        new_seq = 'start '+ ' '.join(new_seq)
+
+
+        return screen_str, new_seq
+
+
     def verify_ans(self):
         """
         Check Human Answer
@@ -335,16 +356,18 @@ class GameBoi:
         if SKIPGAME:
             self.flags.set(finish_ans_verify=True)
             return
-        self.update_gui_text("Please Display The Colors In Order")
+        screen_str,new_seq = self.process_seq(self.game_seq,process='shuffle' )
+        base_str = "Please Display The Colors\nIn The Following Order\n" + screen_str + "\n" 
+        self.update_gui_text(base_str)
         rospy.sleep(1)
-        self.pub_checker(self.game_seq)
+        self.pub_checker(new_seq)
         while(not self.game_check_str):
             dprint("FIND STRING")
             rospy.sleep(0.5)
         ps = ''
         while(not 'Passed' in self.game_check_str ):
             if ps != self.game_check_str:
-                self.update_gui_text(self.game_check_str)
+                self.update_gui_text(base_str + self.game_check_str)
                 ps = self.game_check_str
                 if 'Wrong' in ps:
                     self.num_fails += 1
@@ -361,6 +384,7 @@ class GameBoi:
         self.game_check_str = None
         self.flags.set(finish_ans_verify=True)
 
+    
     def pre_survey(self):
         """
         Pop up survey before the game
@@ -368,7 +392,7 @@ class GameBoi:
         wx.CallAfter(self.gui.frame.show_pre_form)
 
         while self.gui.frame.form_panel is None:
-            rospy.sleep(0.1)
+            rospy.sleep(0.5)
         
         while not self.gui.frame.form_panel.button_clicked:
             rospy.sleep(0.5)
@@ -393,7 +417,7 @@ class GameBoi:
         self.pub_emotion("end")
 
         while self.gui.frame.form_panel is None:
-            rospy.sleep(0.1)
+            rospy.sleep(0.5)
         while not self.gui.frame.form_panel.button_clicked:
             rospy.sleep(0.5)
 
@@ -403,6 +427,7 @@ class GameBoi:
 
         dprint("TEST")
         if self.gui.frame.form_panel.saved_rating:
+            self.post_survey = self.gui.frame.form_panel.saved_rating1
             try:
                 self.post_reward = float(self.gui.frame.form_panel.saved_rating)
             except:
@@ -415,7 +440,7 @@ class GameBoi:
         self.flags.set(finish_game=True)
 
         fileh = open('/home/turtlebot/chocolate_ws/src/gameboi/survey/survey.txt',"a")
-        fileh.write(f'time {time.time()}, emo {self.reward_emotion}, pre {self.pre_reward}, post {self.post_reward} , fails {self.num_fails}')
+        fileh.write(f'time {time.time()}, emo {self.reward_emotion}, pre {self.pre_reward}, post {self.post_reward} , fails {self.num_fails}, posts {self.post_survey}, type {self.bg_action}\n')
         fileh.close()
         dprint("TEST1")
         wx.CallAfter(self.gui.frame.show_game)
