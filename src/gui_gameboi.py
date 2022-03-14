@@ -6,11 +6,36 @@ from strings import *
 import rospy
 import time
 
+"""
+* Filename: gui_gameboi.py
+* Student: Harsh Deshpande, hdeshpande@ucsd.edu; Daniel Beaglehole, dbeaglehole@ucsd.edu; Divyam Bapna, dbapna@ucsd.edu; Chao Chi Cheng, cccheng@ucsd.edu
+* Project #6:  GameBoi
+*
+* Description: This file contains code for the GUI used for Gameboi. It uses the wxpython library to make an 
+                interactive GUI capable of receving text input as well as communicating with the main controller.
+                The gui has a background image, a robot avatar image (captrain america ftw), a tex box where all
+                text outputs are formatted and displayed and finally an instructions panel which stays on screen
+                to provide instructions for special keys like enter to continue or escape to exit.
+                It also contains code for displaying the survey forms and retrieving the entered values from the
+                participants. These are then rallied to the main controller.
+*
+*How to use:
+* Build:
+*   catkin build
+*   source ~/catkin_ws/devel/setup.bash
+* Usage:
+*   rosrun gameboi gui_gameboi.py
+* Requirement:
+*   wxpython should be installed
+*   Make sure every python files permission is set properly
+"""
+
 class GameFlags: #Use this for all game related flags
     def __init__(self):
         self.enter_pressed = False
         self.curr_game = 0
 
+#------------------GUI Code--------------------
 class MyPanel(wx.Panel):
     #----------------------------------------------------------------------
     def __init__(self, parent):
@@ -172,7 +197,9 @@ class MyPanel(wx.Panel):
             self.update_display(exc_inst=False)
 
             self.size_changed = None
-        
+
+
+#--------------Wapper Class for GUI and Survey Modules-----------
 class Puzzle_Bot_GUI(wx.Frame):
     #-------------------------USAGE--------------------------------
     """
@@ -216,6 +243,8 @@ class Puzzle_Bot_GUI(wx.Frame):
         else:
             print(f'You typed: "{value}"')
 
+
+#-------------Pre-Survey Frame Codes-----------
 class TestFrame(wx.Frame):
     def __init__(self,parent):
         wx.Frame.__init__(self, parent, -1, "Please take a few seconds to rate your experience")
@@ -321,7 +350,7 @@ class TestFrame(wx.Frame):
         if key_code == wx.WXK_ESCAPE:
             self.GetParent().Close()
 
-
+#------------Pos-Survey Frame Codes------------
 class TestFrame1(wx.Frame):
     def __init__(self,parent):
         wx.Frame.__init__(self, parent, -1, "Please take a few seconds to rate your experience")
@@ -421,6 +450,7 @@ class TestFrame1(wx.Frame):
         if key_code == wx.WXK_ESCAPE:
             self.GetParent().Close()
 
+#--------------Overall Wrapper Class that initialized a Puzzle_Bot_GUI object with utility functions like cleanup()
 class gui:
     def __init__(self):
         """Constructor"""

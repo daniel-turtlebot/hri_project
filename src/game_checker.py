@@ -1,28 +1,4 @@
 #!/home/turtlebot/anaconda3/envs/gui/bin/python3
-# ****************************************
-#  Filename: game_checker.py
-#  Student: Harsh Deshpande
-#  Final Project: PuzzleBot
-
-
-# Description: 
-# This file contains code for the game logic. It is capable of taking blob inputs and 
-# spitting out real time feedback to help the user play the game. It consists of a subscribeer that 
-# subscribes to blobs topic that reads colours to make decisions for the implemented FSM. It also has a 
-# pair of publisher and subscriber to communicate with the main "gameboi.py" script.
-
-# How to use:
-# Run along with gameboi.py file
-
-
-# Usage:
-# roscore
-# roslaunch turtlebot_bringup minimal.launch
-# roslaunch astra_launch astra_pro.launch
-# rosrun cmvision colorgui image:=/camera/rgb/image_raw
-# rosrun blob_catcher blob_foll.py (After sourcing current workspace)
-
-# ****************************************/
 
 import rospy
 from std_msgs.msg import String
@@ -37,6 +13,28 @@ import pupil_apriltags as apriltag
 import cv2
 
 from collections import defaultdict
+
+"""
+* Filename: game_checker.py
+* Student: Harsh Deshpande, hdeshpande@ucsd.edu; Daniel Beaglehole, dbeaglehole@ucsd.edu; Divyam Bapna, dbapna@ucsd.edu; Chao Chi Cheng, cccheng@ucsd.edu
+* Project #6:  GameBoi
+*
+* Description: This is the checker file which implenets the FSM used to check the sequnce of colours shown by the human.
+*              It uses a FSM where current state is held till a new (different from last seen tag) is seen. If tag
+*              according to the sequence, the state updates to finding the next colour, whereas if its wrong, the 
+*              checker resets to checking the sequece from the beginning.
+*
+*
+*How to use:
+* Build:
+*   catkin build
+*   source ~/catkin_ws/devel/setup.bash
+* Usage:
+*   rosrun gameboi game_checker.py
+*   Make sure you set a valid colour sequence in the 'main' function of this file before runnign above command.
+* Requirement:
+*   Make sure every python files permission is set properly
+"""
 
 def sigint_handler(signal, frame):
 	sys.exit(0)
@@ -117,18 +115,17 @@ class GameCheckerFSM:
         # print(l1*l2/10)
         return l1*l2/10
 
-    def april_cb(self,image):
+    def april_cb(self,image): #Callback to check for tags shown by humans
         if not self.started: return 
-        # print("TEST")
+        #Detecting tags
         im = np.frombuffer(image.data, dtype=np.uint8).reshape(image.height, image.width, -1)
         im_gray = cv2.cvtColor(im, cv2.COLOR_RGB2GRAY)
         result = self.detector.detect(im_gray)
         detected_tag = None
         max_size = -1e6
         for tag in result:
-
-            print(tag.tag_id)
             size_tag = self.get_tag_size(tag.corners)
+            #Getting the tag with largest size (dominant tag assumed to be largest)
             if size_tag>max_size:
                 detected_tag = tag.tag_id
                 max_size = size_tag
@@ -137,14 +134,17 @@ class GameCheckerFSM:
             self.last_tag = detected_tag
             if detected_tag>6 or detected_tag<1: 
                 return
+            #Correct Tag Found
             if detected_tag==self.seq[self.find_index]:
                 send_string = "Found %s"%(self.tag_to_colour[detected_tag])
                 self.find_index+=1
+                #Game Completed
                 if self.find_index==len(self.seq):
                     send_string += "\nGame Passed"
                     self.started = False
                 self.main_pub.publish(send_string)
                 print(send_string)
+            #Wrong tag found
             else:
                 self.main_pub.publish("Found %s,Wrong Sequence, please restart"%(self.tag_to_colour[detected_tag]))
                 self.find_index=0 #Resetting
@@ -153,6 +153,7 @@ class GameCheckerFSM:
 
 
     def blobs_cb(self, blobsIn):
+        #Deprecated function, not used in this project, kept for legacy
         # if self.state==3: return
         if not self.started: return
         if len(blobsIn.blobs)==0: return
@@ -234,5 +235,5 @@ if __name__ == '__main__':
     print("Running on Python ",sys.version)
     signal.signal(signal.SIGINT, sigint_handler) #Used to stop the bot safely using Ctrl+C
     game_checker = GameCheckerFSM()
-    game_checker.set_seq(['Red'])
+    game_checker.set_seq(['Red','Blue','Green'])
     game_checker.run()

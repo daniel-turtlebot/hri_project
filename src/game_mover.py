@@ -20,10 +20,33 @@ from util import COLOR2TAG
 
 from collections import defaultdict
 
+"""
+* Filename: game_mover.py
+* Student: Harsh Deshpande, hdeshpande@ucsd.edu; Daniel Beaglehole, dbeaglehole@ucsd.edu; Divyam Bapna, dbapna@ucsd.edu; Chao Chi Cheng, cccheng@ucsd.edu
+* Project #6:  GameBoi
+*
+* Description: This is the control file for robot movement for GameBoi Project. The launch file to start 
+               the GameBoi is main.launch under the launch folder. This class is designed to implement the robots
+               function of navigating to colours in the right order (according to the sequence sent by controller.py)
+               It uses April tags installed on the colours markers to detect the position of the colours which is
+               then used by a proportional controller to guide Gameboi to desired colour/tag.
+*
+*How to use:
+* Build:
+*   catkin build
+*   source ~/catkin_ws/devel/setup.bash
+* Usage:
+*   rosrun gameboi game_mover.py
+*   Make sure you set a valid colour sequence in the 'main' function of this file before runnign above command.
+* Requirement:
+*   Make sure every python files permission is set properly
+"""
+
 def sigint_handler(signal, frame):
 	sys.exit(0)
 
-class GameMover():
+#--------------------Class to encapsulate all robot movement----------------------
+class GameMover(): 
     def __init__(self):
         rospy.init_node('Mover')
         self.started = False
@@ -36,8 +59,6 @@ class GameMover():
         self.main_sub = rospy.Subscriber('/game_mover_state',String,self.change_state,queue_size=1)
         self.velocity_pub = rospy.Publisher('cmd_vel_mux/input/teleop',Twist, queue_size=1)
         self.main_pub = rospy.Publisher('/game_mover',String,queue_size=1)
-        # self.blobs_sub = rospy.Subscriber('/blobs', Blobs, self.blobs_cb)
-        # self.bumper_sub = rospy.Subscriber('mobile_base/events/bumper', BumperEvent, self.processBump)
         self.detector = apriltag.Detector(nthreads=2,quad_decimate=1,families='tag36h11')
         self.camera_sub = rospy.Subscriber('/camera/rgb/image_raw', Image, self.april_cb)
 
@@ -52,45 +73,45 @@ class GameMover():
         self.mov_scale = -0.005
         self.stationary = Twist()
     
-    def processBump(self,bevent):
-        if bevent.state==1:
-            print("Bump Detected")
-            self.bump = True
-            self.state = "Reached"
-            if self.index==len(self.seq): self.state = "Finished"
 
     def get_tag_size(self,corners):
+        #-----Tag_Size is obtained by assuming a rectangle and multiplying lengths of 2 adjacent sides--
         corners = np.array(corners)
-        # print(corners)
         l1 = np.sqrt(np.sum((corners[0]-corners[1])**2))
         l2 = np.sqrt(np.sum((corners[0]-corners[2])**2))
-        # print(l1*l2/10)
         return l1*l2/10
 
-    def april_cb(self,image):
+    def april_cb(self,image): #Callback for april tag detector
         if not self.started: return  
+        #Detecting tags
         im = np.frombuffer(image.data, dtype=np.uint8).reshape(image.height, image.width, -1)
         im_gray = cv2.cvtColor(im, cv2.COLOR_RGB2GRAY)
         result = self.detector.detect(im_gray)
+
+        #Looking for curr_tag
         curr_tag = self.seq[self.index] if self.index<len(self.seq) else self.orig_tag
         for tag in result:
-            print("Finding curr_tag ",curr_tag)
+            #Checking if detected tag is same as current tag
             if tag.tag_id == curr_tag:
                 self.goal_x = tag.center[0]
+                #Stopping Criteria: If tag is "big enuough" or "low enough"
+                #Using a combination avoids erroneous behaviour due to processing delays
                 if self.get_tag_size(tag.corners)>400 or tag.center[1]<100:
                     self.state = "Reached"
                     self.goal_x = None
                     print("Reached blob %s"%(curr_tag))
                     if self.index==len(self.seq):
-                        print("Finished") 
+                        print("Finished")
                         self.state = "Finished" 
         
         if not self.goal_x: return
-        if self.state!="Moving":# and self.goal_x>280 and self.goal_x<340: 
-            print("Centered Blob") #Blob detected and centered
+
+        #Looking for the tag
+        if self.state!="Moving":
+            print("Centered Tag")
             self.state = "Moving"
 
-    def blobs_cb(self, blobsIn):
+    def blobs_cb(self, blobsIn): #Deprecated Function, kept for legacy
         (self.goal_x, self.goal_y) = (0,0)
         if len(blobsIn.blobs)==0:
             return
@@ -146,6 +167,7 @@ class GameMover():
         return
     
     def controller(self):
+        #----------The FSM used for controlling robot movement--------------------
         if not self.started: 
             # print("Not yet started")
             return
@@ -181,7 +203,6 @@ if __name__ == '__main__':
     print("Running on Python ",sys.version)
     signal.signal(signal.SIGINT, sigint_handler) #Used to stop the bot safely using Ctrl+C
     game_checker = GameMover()
-    print("here")
     #Tag_ids are 8 and 9
-    # game_checker.set_seq([1,2,3])
+    game_checker.set_seq(["Green","Red","Blue"])
     game_checker.run()
