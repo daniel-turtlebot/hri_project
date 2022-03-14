@@ -1,8 +1,24 @@
+"""
+* Filename: learning_utils.py
+* Student: Harsh Deshpande, hdeshpande@ucsd.edu; Daniel Beaglehole, dbeaglehole@ucsd.edu; Divyam Bapna, dbapna@ucsd.edu; Chao Chi Cheng, cccheng@ucsd.edu
+* Project #6:  GameBoi
+*
+* Description: This file contains the online learning utils for this project.  
+              
+             
+*
+*How to use: Create a Sampler object and call its update_index() method to 
+incorporate rewards, and sample() method to select an updated strategy.
+"""
+
 from numpy import random 
 import numpy as np
 from os.path import exists
 
 class Sampler:
+    """
+    Class for sampling according to the Thomson-Sampling method
+    """
     def __init__(self, K):
         self.t = None
         dir_path = "/home/turtlebot/chocolate_ws/src/gameboi/survey/"

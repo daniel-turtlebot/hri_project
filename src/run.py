@@ -1,3 +1,17 @@
+"""
+* Filename: run.py
+* Student: Harsh Deshpande, hdeshpande@ucsd.edu; Daniel Beaglehole, dbeaglehole@ucsd.edu; Divyam Bapna, dbapna@ucsd.edu; Chao Chi Cheng, cccheng@ucsd.edu
+* Project #6:  GameBoi
+*
+* Description: This file contains the main strategy selection utilities for the backend of the gamebot.
+              
+             
+*
+*How to use: This is called by the other backend files. Should not be called as main. To use in other files,
+create an instance of the GameBot class and call the update_reward files with survey data and emotion detection.
+Then at the end of experiments, call the end() method.
+"""
+
 import os
 import numpy as np
 import learning_utils 
@@ -8,6 +22,11 @@ from random import randint
 
 
 def my_mean(tup):
+    """
+    Given a tuple of pre-survey values, return the average (corrected value)
+    The correction ensures that high survey values for positive questions are
+    equivalent to low survey values for negative questions.
+    """
     total = 0
     for i,val in enumerate(list(tup)):
         if i == 0:
@@ -17,6 +36,10 @@ def my_mean(tup):
     return total/len(tup)
 
 class GameBot:
+    """
+    Class containing methods for sampling bot strategies, storing
+    results, and analyzing them.
+    """
     def __init__(self):
         self.num_games = 2
         
@@ -68,6 +91,7 @@ class GameBot:
         reward_survey, reward_emotion - int from 1-5
         """
         max_survey_val = 5
+        # noramlize enjoyment for pre-survey responses
         normalizer = my_mean(pre_survey)/max_survey_val
 
         # between 0 and 1
@@ -94,6 +118,10 @@ class GameBot:
         pass
 
     def end(self):
+        """
+        Call at the end of experiments to analyze the covariates
+        (Things that affect the reward)
+        """
         Xs = self.X
         ys = self.y
 
